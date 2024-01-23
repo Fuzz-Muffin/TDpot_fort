@@ -17,9 +17,23 @@ module io
             set_potential,&
             setup_sim,&
             print_xyz,&
-            load_target_fv
+            load_target_fv,&
+            count_lines
 
   contains
+
+  function count_lines(filename) result(nlines)
+  character :: filename
+  integer :: nlines, iofile, io
+    open(iofile,file=filename)
+    nlines = 0
+    do
+      read(iofile,*,iostat=io)
+      nlines = nlines + 1
+      if (io/=0) exit
+    end do
+    close(10)
+  end function
 
   subroutine init_random_seed(consist)
     integer :: seed_put, consist, seed_get
@@ -33,15 +47,16 @@ module io
   end subroutine
 
   subroutine read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
-     ion_qin, ff, &
-    fwhm_qout, sigma_therm, frozen_par, alpha_max, ion_zi, ion_zf,dx_step, &
-    acc, nhist, log_mode, surface_cov, v_typename, fname_target)
+    ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, frozen_par,&
+    alpha_max, ion_zi, ion_zf,dx_step, acc, nhist, log_mode, surface_cov, v_typename,&
+    fname_target)
     
     character(len=:), allocatable, intent(in) :: fname_input
     character(len=:), allocatable :: prename, ion_elem, fname_target, v_typename
     character(len=512) :: tmpstr
     real(dp) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
-      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, surface_cov
+      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, surface_cov, &
+      gam_p, gam_c, gam_s, gam_cut
     integer :: log_mode, nhist, io, stat, ion_qin
     
     open(newunit=io, file=fname_input, status='old', action='read')
@@ -55,6 +70,7 @@ module io
       read(io,*) ff
       read(io,*) fwhm_qout, sigma_therm, frozen_par, alpha_max
       read(io,*) ion_zi, ion_zf, dx_step, acc, nhist
+      read(io,*) gam_p, gam_c, gam_s, gam_cut
       read(io,*) log_mode, surface_cov
       read(io,*,iostat=stat) tmpstr
       if (stat == 0) then
@@ -66,13 +82,13 @@ module io
   end subroutine
 
   subroutine print_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
-     ion_qin, ff, &
+    ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, &
     fwhm_qout, sigma_therm, frozen_par, alpha_max, ion_zi, ion_zf,dx_step, &
     acc, nhist, log_mode, surface_cov, v_typename, fname_target)
     
     character(len=:), allocatable, intent(in) :: fname_input, prename, ion_elem, fname_target, v_typename
     real(dp), intent(in) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
-      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, surface_cov
+      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, surface_cov, gam_p, gam_c, gam_s, gam_cut
     integer, intent(in) :: log_mode, nhist, ion_qin
     
     print*, fname_input
@@ -83,6 +99,7 @@ module io
     print*, ff
     print*, fwhm_qout, sigma_therm, frozen_par, alpha_max
     print*, ion_zi, ion_zf, dx_step, acc, nhist
+    print*, gam_p, gam_c, gam_s, gam_cut
     print*, log_mode, surface_cov 
     print*, fname_target
   end subroutine
@@ -160,7 +177,7 @@ module io
                        a_mass, a_zz, a_v, a_a, cell, cell_scaled, n_cor, n_sta, n_cap, &
                        factor, ff, r0, r_min, vp)
     real(dp), intent(in) :: ion_zi, ion_zf, ion_m, ion_zz, factor, ion_ke, cell(3), cell_scaled(3)
-    real(dp) :: a_pos(:,:), a_mass(:), a_zz(:), ion_xy(2), delta(2), &
+    real(dp) :: a_pos(:,:), a_mass(:), a_zz(:), ion_xy(2), delta(2), dir, &
       n_cor, n_sta, n_cap, ff, r0, r_min, a_v(:,:), a_a(:,:), vp
     integer, intent(in) :: i_ion
     integer :: natom, ion_qin, i, ind
@@ -183,7 +200,7 @@ module io
     n_sta = 0.0_dp
     n_cap = 0.0_dp
     ff = factor
-    r0 = (1.81_dp + 1.60_dp * sqrt(1.0_dp*ion_qin))*len_fact ! TD-DFT calc of graphene
+    r0 = (1.81_dp + 1.6_dp * sqrt(1.0_dp*ion_qin)) * len_fact ! TD-DFT calc of graphene
     r_min = huge(1.0_dp)
 
     a_v = 0.0_dp
@@ -191,9 +208,11 @@ module io
 
     ! Set initial ion velocity from supplied kinetic energy
     vp = sqrt((2.0_dp * ion_ke * 1000.0_dp / e_fact)/(a_mass(1)))
-    print*, ion_ke, vp, a_mass(1), a_mass(1)
+    print*, ion_ke, vp, ion_m, a_mass(1)
     print*, 'E_k (eV/u) = ', ion_ke/(a_mass(1)/mass_fact), ' vp= ', vp
-    a_v(1,3) = -1.0_dp * vp
+    
+    dir = ion_zf - ion_zi
+    a_v(1,3) = sign(vp, dir)
 
     ! place ion in the center of the target
     do i=2, natom
@@ -226,7 +245,7 @@ module io
       write(io,*) 'Lattice="',cell(1), zero, zero, &
                               zero , cell(2), zero, &
                               zero, zero, cell(3), &
-                              '" Properties=pos:R:3:z:I:1:mass:R:1'
+                              '" Properties=pos:R:3:type:I:1:mass:R:1'
       do i=1, natom 
         write(io,*) a_pos(i,1)/len_fact, a_pos(i,2)/len_fact, a_pos(i,3)/len_fact, a_zz(i), a_mass(i)/mass_fact
       end do 

@@ -4,7 +4,7 @@ module potentials
   implicit none
 
   private 
-  public calc_vprime
+  public calc_vprime, print_pot
 
   contains 
 
@@ -19,7 +19,7 @@ module potentials
      phi3 =   0.335381_dp*exp(-1.919249_dp*x)
      tmp = (phi1 + phi2 + phi3)*(n_cor + n_sta)* zj/r
 
-     a2 = 0.8854_dp/((zj/ff)**(1/3))
+     a2 = 0.8854_dp/((zj/ff)**(1.0_dp/3.0_dp))
 
      x = r/a2
      phi1 =   0.190945_dp*exp(-0.278544_dp*x)
@@ -59,4 +59,23 @@ module potentials
       val = (v1-v2)/dr
     end if
   end function
+
+  subroutine print_pot(r0, n_cap, n_sta, n_cor, r_cut, ff, ddr, zi, zj, vtype)
+    real(dp), intent(in) :: r0, ff, ddr, r_cut, n_cap, n_sta, n_cor, zi, zj
+    integer, intent(in) :: vtype
+    real(dp) :: r, v, dv, dr
+    integer :: i, iofile
+
+    dr = 0.01
+    open(unit=iofile, file='test_potential.txt')
+    write(iofile, *) '# ', r0, ' ', n_sta, ' ', n_cor, ' ', n_cap, ' ', ff, ' ', zi, ' ', zj
+    do i=1, 1000
+      r = i*dr
+      v =  v_hollow_krc(r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj)
+      dv = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj, ddr)
+      write(iofile, *) r, v, dv
+    end do 
+    close(iofile)
+  end subroutine
+
 end module
