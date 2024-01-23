@@ -60,8 +60,6 @@ program main
   r_cut = 10.0_dp  !*len_fact
   
   ! settings, make a config file later
-  is_xyz = 1
-  nprint = 100
   
   ! set potential type switch
   v_type = set_potential(v_typename)
@@ -79,16 +77,23 @@ program main
       ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, &
       frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
       surface_cov, v_typename, fname_target)
+
+    ! to print out xyz files, use verbose mode 2
+    if (verbose == 2) then
+      is_xyz = 1
+      nprint = 100
+    end if 
   end if
 
   logfilename = 'logs/' // prename // '.log'
   open(newunit=logfile, file=logfilename, action='write')
   
   ! check if a file of initial ion coordinates exists  
+  ! if yes, then we do as many ions as we have coordinates 
   inquire(file='ion.xy', exist=exists)
   if (exists) then
     nion = 0
-    print*, "initial ion coordinates exists!"
+    if (verbose>0) print*, "initial ion coordinates exists!"
     nion = count_lines('ion.xy')
     allocate(ion_xy(nion,2))
 
@@ -97,6 +102,8 @@ program main
       read(iofile,*) ion_xy(i,1), ion_xy(i,2) 
     end do 
     close(iofile)
+
+  ! otherwise, use number of ions provided
   else 
     allocate(ion_xy(nion,2))
     ion_xy = -1.0_dp
@@ -105,6 +112,7 @@ program main
   !===============================!
   ! one ion fly event starts here ! 
   !===============================!
+
   do i_ion = 1, nion 
     ! logging stuff
     if (verbose > 0) print*, 'Shoot ion ', to_string(i_ion), ' of ', nion
@@ -118,17 +126,14 @@ program main
     ! here, natoms is the number of target atoms + the ion
     if (verbose > 0) print*, natom-1, ' target atoms in sample'
 
-
-    ! for now just manually set ion xy position to -1,-1 
-    ! which invokes the random ion position routine unless coordinate file 'ion.xy' is present
     call setup_sim(i_ion, ion_zi, ion_zf, ion_xy(i_ion,:), ion_zz, ion_mass, ion_qin, ion_ke, a_pos, &
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
                    factor, ff, r0, r_min, vp)
   
-    if ((verbose > 0) .and. (is_xyz==1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
+    if (verbose >= 2) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
 
     ! set some things up
-    ddr = 0.01
+    ddr = 0.01_dp
     t = a_pos(1,3)/vp
     ion_trj_max = abs(ion_zf - ion_zi) *len_fact ! stupid fucking factor
     ion_trj_len = abs(a_pos(1,3) - ion_zi * len_fact) ! fucking factor
@@ -137,11 +142,10 @@ program main
     tan_psi = 0.0_dP
     ion_qout = ion_qin
 
-    if (verbose == 2) then
+    if (verbose >= 2) then
       write(logfile,*)  '#step time dt ion_x ion_y ion_z ion-vel_x ion-vel_y ion-vel_z N_core N_stable N_cap ion_disp' 
     end if 
 
-    ! shoot an ion at target, parallelise this loop later
     count = 0
     do while (ion_trj_len < ion_trj_max)
       call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
@@ -169,8 +173,6 @@ program main
     ! calc ion properties at end of trj
     call calc_ion_props(fwhm_qout, a_vel, a_zz, ion_iv, ion_qin, n_cor, n_sta, n_cap, &
       tan_phi, tan_psi, ion_qout)
-
-    print*, n_sta, n_cap, n_cor
 
     ! Output good bits in a.u. for comparison with pascal code
     if (verbose > 0) then
