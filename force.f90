@@ -10,7 +10,7 @@ module force
                          e_fact= 27.211_dp
   
   private
-  public :: varystep, update_ion, calc_ion_props, update_ion_old
+  public :: varystep, varystep_vv, update_ion, calc_ion_props, update_ion_old
 
   contains 
 
@@ -46,6 +46,49 @@ module force
     real(dp) :: val
     val = abs(-1.0_dp * 0.5_dp * p * (erf(s*(r-c))-1.0_dp))
   end function
+  
+  subroutine varystep_vv(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
+      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
+    real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
+    real(dp) :: x(:,:), v(:,:), a(:,:), &
+                mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
+                n_cap, n_sta, n_cor, r_cut, r
+    real(dp), allocatable :: xold(:,:), vold(:,:), vprime(:), aold(:,:)
+    integer :: i, j, ind, natom, vtype, verbose
+    natom = size(mass)
+
+    if (.not. allocated(xold)) allocate(xold(natom,3))
+    if (.not. allocated(vold)) allocate(vold(natom,3))
+    if (.not. allocated(vprime)) allocate(vprime(natom))
+    
+    xold = x
+    vold = v
+    aold = a
+    
+    acel = sqrt(sum(a(1,:)**2))+tiny(1.0_dp)
+    dt =min(dt_max, acc * ion_iv/acel)
+
+    do i=1, natom
+      do ind=1, 3 
+        x(i,ind) = xold(i,ind) + vold(i,ind) * dt + 0.5* aold(i,ind)* dt**2
+      end do 
+    end do 
+
+    do i=1, natom
+      tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
+      vprime(j) = -1.0_dp * tmp/r
+      do ind=1, 3
+        a(1,ind) = a(1,ind) + (x(1,ind) - x(i,ind)) * vprime(i)/mass(1)
+        a(i,ind) = a(i,ind) + (x(i,ind) - x(1,ind)) * vprime(i)/mass(i)
+      end do 
+    end do 
+
+    do i=1, natom
+      do ind=1,3
+        v(i,ind) = vold(i,ind) + 0.5 *( aold(i,ind) + a(i,ind)) * dt
+      end do 
+    end do  
+  end subroutine
 
   subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
       vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
@@ -69,11 +112,8 @@ module force
     dt2 = dt * 0.5_dp
 
     do i=1, natom
-      ! test with pascal code
-      !a(i, :) = 0.0_dp
+      a(i, :) = 0.0_dp
       if (i == 1) then 
-        ! for similarity 
-        a(1, :) = 0.0_dp
         do j=2, natom
           r = dist(x(i,:), x(j,:), cell) 
           tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
@@ -95,10 +135,8 @@ module force
     end do 
 
     do i=1, natom 
-      ! test with pascal code
-      !a(i, :) = 0.0_dp
+      a(i, :) = 0.0_dp
       if (i == 1) then 
-        a(1, :) = 0.0_dp
         do j=2, natom
           r = dist(x(1,:), x(j,:), cell) 
           tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, &
@@ -132,62 +170,52 @@ module force
 
     natom = size(x(:,1))
     nelectron = dint(n_cor+n_sta+n_cap)
+    print*, nelectron, z(1)
     
     lam = lambda_f(x(1,3), r0, froz_p, lam_a, lam_mu) 
     r = huge(1.0_dp)
 
-    tmp_n_sta = 0.0
-    tmp_n_cap = 0.0
+    tmp_n_sta = 0.0_dp
+    tmp_n_cap = 0.0_dp
 
     ! calculate distances between ion and target atoms
     do j=2, natom
       tmp = dist(x(1,:), x(j,:), cell) 
       r = min(tmp, r)
       ! if the gamma cutoff is +ve, calculate gamma and electron transfer between all targets within gam_cut
-      if ((tmp < gam_cut) .and. (gam_cut>0.0) .and. nelectron < z(1)) then
-        gam = gamma_f(tmp, gam_p, gam_c, gam_s)
-        tmp_n_cap = tmp_n_cap + lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
-        tmp_n_sta = tmp_n_sta + gam *dt*n_cap
+      if (gam_cut>0.0_dp) then
+        if (tmp < gam_cut) then
+          gam = gamma_f(tmp, gam_p, gam_c, gam_s)
+          tmp_n_cap = tmp_n_cap + lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
+          tmp_n_sta = tmp_n_sta + gam *dt*n_cap
+        end if 
       end if 
     end do
 
     ! else if gam_cut is -ve, then just calculate electron transfer between ion and nearest target atom
-    if (gam_cut <= 0.0 .and. nelectron< z(1)) then
+    if (gam_cut <= 0.0) then
       gam = gamma_f(r, gam_p, gam_c, gam_s)
       tmp_n_cap = lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
       tmp_n_sta = gam *dt*n_cap
     end if 
 
     ! update the ion electron counts 
-    if (nelectron< z(1)) then
-      blah = z(1)-n_cor-n_sta-n_cap
-      ! if ion wants more electrons than Z, then scale this so that electrons <= Z
-      if (tmp_n_sta + tmp_n_cap > blah) then 
-        tmp_n_sta = tmp_n_sta/blah * (tmp_n_sta + tmp_n_cap)
-        tmp_n_cap = tmp_n_cap/blah * (tmp_n_sta + tmp_n_cap) 
-      end if 
+    blah = z(1)-n_cor-n_sta-n_cap
+    ! if ion wants more electrons than Z, then scale this so that electrons <= Z
+    if (tmp_n_sta + tmp_n_cap > blah) then 
+      tmp_n_sta = tmp_n_sta/blah * (tmp_n_sta + tmp_n_cap)
+      tmp_n_cap = tmp_n_cap/blah * (tmp_n_sta + tmp_n_cap) 
     end if 
     n_sta = n_sta + tmp_n_sta
     n_cap = n_cap + tmp_n_cap
 
-
     ! record closesest approach distance 
     if (r<r_min) r_min = r
 
-    print*, 'tmp_sta: ', tmp_n_sta, '  tmp_cap: ',tmp_n_cap
-    print*, 'Core: ', n_cor, '  Captured: ', n_cap, '  Stabilised: ', n_sta, ' blah:', blah
-
-    ! old way
-    !do j=2, natom
-    !  tmp = dist(x(1,:), x(j,:), cell)
-    !  r = min(tmp, r)
-    !end do 
-    !if (r<r_min) r_min = r
-
-    !gam = gamma_f(r, gam_p, gam_c, gam_s)
-    !tmp = n_cap + lam*dt*(z(1) - n_cor-n_cap-n_sta) - gam*dt*n_cap
-    !n_sta = n_sta + gam*dt*n_cap
-    !n_cap = tmp
+    if (verbose == 2) then
+      print*, 'tmp_sta: ', tmp_n_sta, '  tmp_cap: ',tmp_n_cap
+      print*, 'Core: ', n_cor, '  Captured: ', n_cap, '  Stabilised: ', n_sta, ' blah:', blah
+    end if 
 
     tmp = exp(alpha_max * ion_iv * t)
     ff = tmp/(1.0_dp +tmp) + factor/(1.0_dp+tmp)
@@ -195,10 +223,10 @@ module force
 
 
   subroutine update_ion_old(dt, t, x, z, n_sta, n_cap, n_cor, factor, ff, r0, ion_iv, &
-      lam_a, froz_p, lam_mu, alpha_max, r_min, gam_a, gam_b, gam_c, cell, &
+      lam_a, froz_p, lam_mu, alpha_max, r_min, gam_a, gam_b, gam_c, cutoff, cell, &
       logfile, verbose)
     real(dp), intent(in) :: x(:,:), cell(:), r0, lam_a, froz_p, lam_mu, dt, t, &
-      ion_iv,factor, alpha_max, gam_a, gam_b, gam_c
+      ion_iv,factor, alpha_max, gam_a, gam_b, gam_c, cutoff
     real(dp) :: z(:), n_sta, n_cap, n_cor, lam, tmp, gam, ff, r_min, r
     integer :: logfile, j, natom, verbose, nneigh
 
@@ -222,6 +250,10 @@ module force
     tmp = n_cap + lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
     n_sta = n_sta + gam *dt*n_cap
     n_cap = tmp
+    
+    if (verbose == 2) then
+      print*, 'Core: ', n_cor, '  Captured: ', n_cap, '  Stabilised: ', n_sta
+    end if 
 
     tmp = exp(alpha_max * ion_iv * t)
     ff = tmp/(1.0_dp +tmp) + factor/(1.0_dp+tmp)

@@ -13,8 +13,9 @@ program main
     load_target => load_target_fv
   use force, only: &
     varystep,&
-    update_ion,&
-    update_ion_old,&
+    varystep_vv,&
+    !update_ion,& 
+    update_ion => update_ion_old,&
     calc_ion_props
   use potentials, only: print_pot
   implicit none
@@ -72,11 +73,11 @@ program main
   call system( mkdir // 'logs')
   
   if (verbose > 0) then
-    print*, 'indat values'
-    call print_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
-      ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, &
-      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
-      surface_cov, v_typename, fname_target)
+    !print*, 'indat values'
+    !call print_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
+    !  ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, &
+    !  frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
+    !  surface_cov, v_typename, fname_target)
 
     ! to print out xyz files, use verbose mode 2
     if (verbose == 2) then
@@ -130,7 +131,7 @@ program main
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
                    factor, ff, r0, r_min, vp)
   
-    if (verbose >= 2) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
+    if (is_xyz==1) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
 
     ! set some things up
     ddr = 0.01_dp
@@ -148,7 +149,12 @@ program main
 
     count = 0
     do while (ion_trj_len < ion_trj_max)
-      call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
+      !RK method
+      !call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
+      !  dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
+
+      !VV integrator
+      call varystep_vv(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
         dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
