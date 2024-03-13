@@ -165,18 +165,17 @@ module force
     real(dp), intent(in) :: x(:,:), cell(:), r0, lam_a, froz_p, lam_mu, dt, t, &
       ion_iv, factor, alpha_max, gam_p, gam_c, gam_s, gam_cut
     real(dp) :: z(:), n_sta, n_cap, n_cor, lam, tmp, gam, ff, r_min, r, & 
-      tmp_n_cap, tmp_n_sta, blah
+      tmp_n_cap, tmp_n_sta, blah, tmp_gamma
     integer :: logfile, j, natom, verbose, nneigh, nelectron
 
     natom = size(x(:,1))
     nelectron = dint(n_cor+n_sta+n_cap)
-    print*, nelectron, z(1)
     
-    lam = lambda_f(x(1,3), r0, froz_p, lam_a, lam_mu) 
     r = huge(1.0_dp)
 
     tmp_n_sta = 0.0_dp
     tmp_n_cap = 0.0_dp
+    gam = 0.0_dp
 
     ! calculate distances between ion and target atoms
     do j=2, natom
@@ -185,9 +184,7 @@ module force
       ! if the gamma cutoff is +ve, calculate gamma and electron transfer between all targets within gam_cut
       if (gam_cut>0.0_dp) then
         if (tmp < gam_cut) then
-          gam = gamma_f(tmp, gam_p, gam_c, gam_s)
-          tmp_n_cap = tmp_n_cap + lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
-          tmp_n_sta = tmp_n_sta + gam *dt*n_cap
+          gam = gam + gamma_f(tmp, gam_p, gam_c, gam_s)
         end if 
       end if 
     end do
@@ -195,19 +192,11 @@ module force
     ! else if gam_cut is -ve, then just calculate electron transfer between ion and nearest target atom
     if (gam_cut <= 0.0) then
       gam = gamma_f(r, gam_p, gam_c, gam_s)
-      tmp_n_cap = lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
-      tmp_n_sta = gam *dt*n_cap
     end if 
-
-    ! update the ion electron counts 
-    blah = z(1)-n_cor-n_sta-n_cap
-    ! if ion wants more electrons than Z, then scale this so that electrons <= Z
-    if (tmp_n_sta + tmp_n_cap > blah) then 
-      tmp_n_sta = tmp_n_sta/blah * (tmp_n_sta + tmp_n_cap)
-      tmp_n_cap = tmp_n_cap/blah * (tmp_n_sta + tmp_n_cap) 
-    end if 
-    n_sta = n_sta + tmp_n_sta
-    n_cap = n_cap + tmp_n_cap
+      
+    lam = lambda_f(r, r0, froz_p, lam_a, lam_mu)
+    n_cap = n_cap + lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam *dt*n_cap
+    n_sta = n_sta + gam *dt*n_cap
 
     ! record closesest approach distance 
     if (r<r_min) r_min = r
@@ -232,8 +221,6 @@ module force
 
     natom = size(x(:,1))
 
-    lam = lambda_f(x(1,3), r0, froz_p, lam_a, lam_mu)
-
     r = huge(1.0_dp)
     nneigh = 0
     do j=2, natom
@@ -241,11 +228,10 @@ module force
       if (tmp/len_fact < 1.5) nneigh = nneigh + 1
       r = min(tmp, r)
     end do
-    !print*, 'Ion has ', nneigh, ' neighbours'
+    lam = lambda_f(r , r0, froz_p, lam_a, lam_mu)
+    gam = gamma_f(r, gam_a, gam_b, gam_c)
 
     if (r<r_min) r_min = r
-
-    gam = gamma_f(r, gam_a, gam_b, gam_c)
 
     tmp = n_cap + lam*dt*(z(1) - n_cor - n_cap - n_sta) - gam*dt*n_cap
     n_sta = n_sta + gam *dt*n_cap
