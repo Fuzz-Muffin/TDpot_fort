@@ -14,8 +14,8 @@ program main
   use force, only: &
     varystep,&
     varystep_vv,&
-    !update_ion,& 
-    update_ion => update_ion_old,&
+    update_ion,& 
+    !update_ion => update_ion_old,&
     calc_ion_props
   use potentials, only: print_pot
   implicit none
@@ -144,18 +144,18 @@ program main
     ion_qout = ion_qin
 
     if (verbose >= 2) then
-      write(logfile,*)  '#step time dt ion_x ion_y ion_z ion-vel_x ion-vel_y ion-vel_z N_core N_stable N_cap ion_disp' 
+      write(logfile,*)  '#step time dt ion_x ion_y ion_z N_core N_stable N_cap ion_disp' 
     end if 
 
     count = 0
     do while (ion_trj_len < ion_trj_max)
       !RK method
-      !call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-      !  dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
+      call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
+        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
 
       !VV integrator
-      call varystep_vv(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
+      !call varystep_vv(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
+      !  dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
         r0, ion_ispeed, lam_a, frozen_par, lam_mu, alpha_max, r_min, gam_p, &
@@ -166,6 +166,7 @@ program main
       t = t + dt
 
       if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
+      if (verbose >=2) write(logfile,*)  count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len 
       
       count = count + 1
     end do 
