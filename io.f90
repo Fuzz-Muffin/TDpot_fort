@@ -18,7 +18,8 @@ module io
             setup_sim,&
             print_xyz,&
             load_target_fv,&
-            count_lines
+            count_lines,&
+            init_target
 
   contains
 
@@ -35,15 +36,14 @@ module io
     close(10)
   end function
 
-  subroutine init_random_seed(consist)
-    integer :: seed_put, consist, seed_get
+  subroutine init_random_seed(consist, myid)
+    integer :: seed_put, consist, seed_get, myid
     if (consist == 1) then
       seed_put = 666
     else
       call system_clock(count=seed_put)
     end if
-
-    call random_seed(seed_put, seed_get)
+    call random_seed(seed_put+myid, seed_get)
   end subroutine
 
   subroutine read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
@@ -122,33 +122,36 @@ module io
     ion_xy(1) = uni(cell(1))
     ion_xy(2) = uni(cell(2))
   end subroutine
-    
+  
+  subroutine init_target(fname, x, m, zz, v, a, natom) 
+    character(len=:), allocatable, intent(in) :: fname
+    real(dp), allocatable :: x(:,:), v(:,:), a(:,:), m(:), zz(:)
+    integer :: io, natom
+    open(newunit=io, file=fname, status='old', action='read')
+      ! natom here is the number of target atoms
+      read(io,*) natom
+    close(io)
+      allocate(x(natom+1,3))
+      allocate(m(natom+1))
+      allocate(zz(natom+1))
+      allocate(v(natom+1,3))
+      allocate(a(natom+1,3))
+  end subroutine 
 
-  subroutine load_target_fv(fname, i_ion, sigma_therm, x, v, a, m, zz, natom, cell, cell_scaled)
+  subroutine load_target_fv(fname, sigma_therm, x, v, a, m, zz, natom, cell, cell_scaled)
+    integer :: natom, io, i, ind
     character(len=:), allocatable, intent(in) :: fname
     real(dp), intent(in) :: sigma_therm
-    real(dp), allocatable :: x(:,:), v(:,:), a(:,:), m(:), zz(:)
-    real(dp) :: z_max, cell_scaled(3), cell(3)
-    integer, intent(in) :: i_ion
-    integer :: natom, io, i, ind
+    real(dp) :: z_max, cell_scaled(3), cell(3), x(natom,3), v(natom,3), a(natom,3), m(natom), zz(natom)
     
     open(newunit=io, file=fname, status='old', action='read')
     
       ! natom here is the number of target atoms
-      read(io,*) natom
+      read(io,*) 
       
-      ! if this is the first ion fly, allocate the arrays
-      if (i_ion == 1) then
-        allocate(x(natom+1,3))
-        allocate(m(natom+1))
-        allocate(zz(natom+1))
-        allocate(v(natom+1,3))
-        allocate(a(natom+1,3))
-      end if 
-
       z_max = -1.0_dp * huge(1.0_dp)
       read(io,*) cell(1), cell(2), cell(3)
-      do i=2, natom+1
+      do i=2, natom
         read(io,*) x(i,1), x(i,2), x(i,3), zz(i), m(i)
         do ind=1, 3
           x(i,ind) = x(i,ind) * len_fact
@@ -159,7 +162,7 @@ module io
     close(io)
 
     !shift target so that z=0 and add thermal motion if specified
-    do i=2,natom+1
+    do i=2,natom
       if (abs(sigma_therm) > tol) then
         do ind=1,3
           x(i,ind) = norm(x(i,ind), sigma_therm) 
@@ -173,13 +176,12 @@ module io
     cell_scaled = cell*len_fact
   end subroutine
 
-  subroutine setup_sim(i_ion, ion_zi, ion_zf, ion_xy, ion_zz, ion_m, ion_qin, ion_ke, a_pos, &
+  subroutine setup_sim(ion_zi, ion_zf, ion_xy, ion_zz, ion_m, ion_qin, ion_ke, a_pos, &
                        a_mass, a_zz, a_v, a_a, cell, cell_scaled, n_cor, n_sta, n_cap, &
                        factor, ff, r0, r_min, vp)
     real(dp), intent(in) :: ion_zi, ion_zf, ion_m, ion_zz, factor, ion_ke, cell(3), cell_scaled(3)
     real(dp) :: a_pos(:,:), a_mass(:), a_zz(:), ion_xy(2), delta(2), dir, &
       n_cor, n_sta, n_cap, ff, r0, r_min, a_v(:,:), a_a(:,:), vp
-    integer, intent(in) :: i_ion
     integer :: natom, ion_qin, i, ind
 
     natom = size(a_mass)

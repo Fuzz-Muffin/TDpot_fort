@@ -4,11 +4,12 @@ OBJ = arnie.o\
 			force.o\
 			main.o
 
-FC = gfortran
+#FC = gfortran
+FC = mpifort
 GOAL = TDpot
 
-FFLAGS = -O3
-#FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
+#FFLAGS = -O3
+FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
 
 LIBS = fortran_stdlib
 LIB_DIR = /Users/filip/bin/fortran_stdlib/lib
