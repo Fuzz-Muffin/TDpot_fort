@@ -48,16 +48,16 @@ module io
 
   subroutine read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
     ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, frozen_par,&
-    alpha_max, ion_zi, ion_zf,dx_step, acc, nhist, log_mode, surface_cov, v_typename,&
+    alpha_max, ion_zi, ion_zf, dx_step, acc, nhist, log_mode, is_xyz, v_typename,&
     fname_target)
     
     character(len=:), allocatable, intent(in) :: fname_input
     character(len=:), allocatable :: prename, ion_elem, fname_target, v_typename
     character(len=512) :: tmpstr
     real(dp) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
-      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, surface_cov, &
+      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, &
       gam_p, gam_c, gam_s, gam_cut
-    integer :: log_mode, nhist, io, stat, ion_qin
+    integer :: log_mode, nhist, io, stat, ion_qin, is_xyz 
     
     open(newunit=io, file=fname_input, status='old', action='read')
       read(io,*) tmpstr
@@ -71,7 +71,7 @@ module io
       read(io,*) fwhm_qout, sigma_therm, frozen_par, alpha_max
       read(io,*) ion_zi, ion_zf, dx_step, acc, nhist
       read(io,*) gam_p, gam_c, gam_s, gam_cut
-      read(io,*) log_mode, surface_cov
+      read(io,*) log_mode, is_xyz 
       read(io,*,iostat=stat) tmpstr
       if (stat == 0) then
         fname_target = trim(tmpstr)
@@ -84,12 +84,12 @@ module io
   subroutine print_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
     ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, &
     fwhm_qout, sigma_therm, frozen_par, alpha_max, ion_zi, ion_zf,dx_step, &
-    acc, nhist, log_mode, surface_cov, v_typename, fname_target)
+    acc, nhist, log_mode, is_xyz, v_typename, fname_target)
     
     character(len=:), allocatable, intent(in) :: fname_input, prename, ion_elem, fname_target, v_typename
     real(dp), intent(in) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
-      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, surface_cov, gam_p, gam_c, gam_s, gam_cut
-    integer, intent(in) :: log_mode, nhist, ion_qin
+      frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, gam_p, gam_c, gam_s, gam_cut
+    integer, intent(in) :: log_mode, nhist, ion_qin, is_xyz
     
     print*, fname_input
     print*, prename
@@ -100,7 +100,7 @@ module io
     print*, fwhm_qout, sigma_therm, frozen_par, alpha_max
     print*, ion_zi, ion_zf, dx_step, acc, nhist
     print*, gam_p, gam_c, gam_s, gam_cut
-    print*, log_mode, surface_cov 
+    print*, log_mode, is_xyz 
     print*, fname_target
   end subroutine
 
@@ -187,7 +187,6 @@ module io
     natom = size(a_mass)
     ! If we provide initial xy ion coordinates of negative then pick a random location
     if ((ion_xy(1) < 0.0_dp) .and. (ion_xy(2) < 0.0_dp)) then
-      print*, 'Get random ion XY coordinate'
       call get_random_ion_xy(ion_xy, cell)
     end if
 
@@ -210,8 +209,6 @@ module io
 
     ! Set initial ion velocity from supplied kinetic energy
     vp = sqrt((2.0_dp * ion_ke * 1000.0_dp / e_fact)/(a_mass(1)))
-    print*, ion_ke, vp, ion_m, a_mass(1)
-    print*, 'E_k (eV/u) = ', ion_ke/(a_mass(1)/mass_fact), ' vp= ', vp
     
     dir = ion_zf - ion_zi
     a_v(1,3) = sign(vp, dir)
@@ -225,8 +222,6 @@ module io
         end if  
       end do 
     end do
-    print*, 'X coord extent: ', minval(a_pos(:,1)), maxval(a_pos(:,1))
-    print*, 'Y coord extent: ', minval(a_pos(:,2)), maxval(a_pos(:,2))
   end subroutine
 
   subroutine print_xyz(a_pos, a_mass, a_zz, cell, fname, status)

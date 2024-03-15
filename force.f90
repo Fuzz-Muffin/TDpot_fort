@@ -266,7 +266,6 @@ module force
     tan_phi = huge(1.0_dp)
     tan_psi = sqrt(a_v(1,1)**2 + a_v(1,2)**2)/a_v(1,3)
     if (abs(a_v(1,3)) > tol) tan_phi = a_v(1,1)/a_v(1,2)
-    print*, tan_phi, a_v(1,2)/a_v(1,1)
   end subroutine 
 
 end module

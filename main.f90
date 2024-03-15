@@ -65,7 +65,7 @@ program main
   call read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
       ion_qin, factor, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, &
       frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
-      surface_cov, v_typename, fname_target)
+      is_xyz, v_typename, fname_target)
   ! all input values are unscaled !
 
   ! some constants
@@ -85,7 +85,6 @@ program main
   call system( mkdir // 'logs')
   
   if (verbose == 2) then
-    is_xyz = 1
     nprint = 100
   end if
   
@@ -137,6 +136,14 @@ program main
   allocate(r_min_arr(nchunk))
   allocate(tan_psi_arr(nchunk))
   allocate(ion_xy_arr(nchunk,2))
+  
+  ! create an output file for the results  
+  outfilename = prename // '_out.txt'
+  if (icpu == 0) then
+    open(newunit=outputfile, file=outfilename, action='write')
+      write(outputfile, *) '#ion_x ion_y ion_KE_i ion_KE_f tar_KE tan_phi qout r_min tan_psi'
+    close(outputfile)
+  end if 
 
   !===============================!
   ! one ion fly event starts here ! 
@@ -234,23 +241,16 @@ program main
     close(logfile)
   end do
 
-  outfilename = prename // '_out.txt'
-  close(outputfile)
   do icpu=0, ncpu-1
     if (myid == icpu) then 
-      if (icpu == 0) then
-        open(newunit=outputfile, file=outfilename, action='write')
-        write(outputfile, *) '#ion_x ion_y ion_KE_i ion_KE_f tar_KE tan_phi qout r_min tan_psi'
-      else 
-        open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
-      end if 
-
+      open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii=1, nchunk
         write(outputfile, *) ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), ke_tar_arr(ii), ion_qout_arr(ii),&
-          r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), ion_qout_arr(ii)
+          r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii) 
       end do 
       close(outputfile)
     end if 
+    call MPI_BARRIER( MPI_COMM_WORLD, err)
   end do 
   call MPI_FINALIZE(err)
 end program 
