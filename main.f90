@@ -123,9 +123,12 @@ program main
       close(iofile)
     ! otherwise, use number of ions provided
     else 
+      allocate(ion_xx(nion))
+      allocate(ion_yy(nion))
       allocate(ion_xy(nion,2))
       ion_xx = -1.0_dp
       ion_yy = -1.0_dp
+      ion_xy = -1.0_dp
     end if 
     ! okay proc 0 has the initial ion coordinates, tell the other procs
     do icpu =1, ncpu -1
