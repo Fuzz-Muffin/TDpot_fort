@@ -264,11 +264,13 @@ program main
     a_acel = 0.0_dp
 
     ! logging stuff
-    if (verbose > 0) print*, 'Shoot ion ', to_string(i_ion), ' of ', nion
+    if (verbose > 0) then 
+      print*, 'Shoot ion ', to_string(i_ion), ' of ', nion
+      logfilename = 'logs/' // prename // '_' // to_string(i_ion) // '.log'
+      open(newunit=logfile, file=logfilename, action='write')
+      
     xyzfilename = 'logs/ion_' // to_string(i_ion) // '.xyz'
 
-    logfilename = 'logs/' // prename // '_' // to_string(i_ion) // '.log'
-    open(newunit=logfile, file=logfilename, action='write')
 
     call setup_sim(ion_zi, ion_zf, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_zz, ion_mass, ion_qin, ion_ke, a_pos, &
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
@@ -335,8 +337,8 @@ program main
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i2, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
         (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi
-    end if 
-    close(logfile)
+      close(logfile)
+    end if
   end do
 
   do icpu=0, ncpu-1
