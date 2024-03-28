@@ -264,10 +264,11 @@ program main
     a_acel = 0.0_dp
 
     ! logging stuff
-    if (verbose > 0) then 
-      print*, 'Shoot ion ', to_string(i_ion), ' of ', nion
+    if (verbose > 0) print*, 'Shoot ion ', to_string(i_ion), ' of ', nion
+    if (verbose > 1) then
       logfilename = 'logs/' // prename // '_' // to_string(i_ion) // '.log'
       open(newunit=logfile, file=logfilename, action='write')
+    end if 
       
     xyzfilename = 'logs/ion_' // to_string(i_ion) // '.xyz'
 
@@ -288,7 +289,7 @@ program main
     tan_psi = 0.0_dP
     ion_qout = ion_qin
 
-    if (verbose >= 2) then
+    if (verbose > 1) then
       write(logfile,*)  '#step time dt ion_x ion_y ion_z N_core N_stable N_cap ion_disp' 
     end if 
 
@@ -311,7 +312,7 @@ program main
       t = t + dt
 
       if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
-      if (verbose >=2) write(logfile,*)  count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len 
+      if (verbose >1) write(logfile,*)  count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len 
       
       count = count + 1
     end do 
@@ -337,8 +338,9 @@ program main
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i2, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
         (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi
-      close(logfile)
     end if
+
+    if (verbose > 1) close(logfile)
   end do
 
   do icpu=0, ncpu-1
