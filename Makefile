@@ -8,13 +8,15 @@ OBJ = arnie.o\
 FC = mpifort
 GOAL = TDpot
 
-FFLAGS = -O3
-#FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
+#FFLAGS = -O3
+FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
 
 LIBS = fortran_stdlib
 LIB_DIR = /Users/filip/bin/fortran_stdlib/lib
 MOD_DIR = /Users/filip/bin/fortran_stdlib/include/fortran_stdlib/GNU-13.2.0
 
+#LIB_DIR = /home/fs70998/vukovicf/.local/lib64
+#MOD_DIR = /home/fs70998/vukovicf/.local/include/fortran_stdlib/GNU-10.2.0/
 
 # final build
 $(GOAL): $(OBJ) 
