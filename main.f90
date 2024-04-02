@@ -336,7 +336,7 @@ program main
     tan_psi_arr(ii) = tan_psi
 
     if (verbose > 0) then
-      write(6, '(i5, 5(f15.5), i2, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
+      write(6, '(i5, 5(f15.5), i4, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
         (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi
     end if
 
@@ -348,7 +348,7 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii=1, nchunk
         i_ion = istart + ii-1
-        write(outputfile, '(i6, 4(f15.5), i2, 3(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), &
+        write(outputfile, '(i6, 4(f15.5), i4, 3(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), &
           ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii) 
       end do 
       close(outputfile)
