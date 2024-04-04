@@ -246,7 +246,7 @@ program main
   outfilename = prename // '_out.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
-      write(outputfile, *) '#ion_x ion_y ion_KE_i ion_KE_f tar_KE tan_phi qout r_min tan_psi'
+      write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i ion_KE_f tar_KE qout r_min tan_phi tan_psi'
     close(outputfile)
   end if 
 

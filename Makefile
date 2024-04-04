@@ -8,8 +8,8 @@ OBJ = arnie.o\
 FC = mpifort
 GOAL = TDpot
 
-#FFLAGS = -O3
-FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
+FFLAGS = -O3
+#FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
 
 LIBS = fortran_stdlib
 #LIB_DIR = /Users/filip/bin/fortran_stdlib/lib
