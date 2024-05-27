@@ -5,20 +5,20 @@ module io
   use stdlib_stats_distribution_normal, only: norm => rvs_normal
 
   implicit none 
-  real(dp), parameter :: tol=1.0e-15_dp,&
-                         len_fact = 1.0_dp/0.529_dp,&
-                         mass_fact=1822.89_dp,&
-                         e_fact= 27.211_dp
+  real(dp), parameter :: tol = 1.0e-15_dp, &
+                         len_fact = 1.0_dp/0.529_dp, &
+                         mass_fact = 1822.89_dp, & ! 1 amu = 1822.89 a.u.
+                         e_fact = 27.211_dp
 
-  private 
-  public :: init_random_seed,&
-            read_indat,&
-            print_indat,&
-            set_potential,&
-            setup_sim,&
-            print_xyz,&
-            load_target_fv,&
-            count_lines,&
+  private
+  public :: init_random_seed, &
+            read_indat, &
+            print_indat, &
+            set_potential, &
+            setup_sim, &
+            print_xyz, &
+            load_target_fv, &
+            count_lines, &
             init_target
 
   contains
