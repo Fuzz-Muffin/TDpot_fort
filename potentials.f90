@@ -58,7 +58,7 @@ module potentials
           v2 = v_hollow_krc(r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj)
       end select
 
-      val = (v1-v2) / dr
+      val = (v1 - v2) / dr
 
     end if
   end function

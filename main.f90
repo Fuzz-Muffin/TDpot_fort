@@ -41,8 +41,11 @@ program main
                            r_min_arr(:), tan_psi_arr(:), &
                            ion_xy_arr(:,:), a_pos_og(:,:), xx(:), yy(:), &
                            zz(:), ion_xx(:), ion_yy(:)
-  ! ion_zz = atomic number
+  
+  ! ion_zz: atomic number
+  ! cell, cell_scaled: simulation cell in Angstrom and a.u.
   ! n_cor, n_sta, n_cap: electrons in the core, stabilized and captured
+  ! vp: initial ion velocity
   real(dp) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
               frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, &
               n_exp, cell(3), cell_scaled(3), factor, &
@@ -50,6 +53,8 @@ program main
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
               tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp
   integer, allocatable :: ion_qout_arr(:)
+
+  ! v_type: potential type
   integer :: i, j, k, n, nion, verbose, v_type, natom, logfile, &
              nprint, count, is_xyz, ion_qin, ion_qout, i_ion, iofile, &
              myid, ncpu, stat(MPI_STATUS_SIZE), err, nchunk, istart, istop, ii, icpu, &

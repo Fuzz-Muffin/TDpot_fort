@@ -14,7 +14,7 @@ module force
 
   contains
 
-  function dist(x0,x1,pbc) result(val)
+  function dist(x0, x1, pbc) result(val)
     real(dp), intent(in) :: x0(:), x1(:), pbc(:)
     real(dp) :: val, delta(3), half_pbc(3), a(3), b(3)
     integer :: ind
@@ -32,7 +32,7 @@ module force
 
       !val = val + delta(ind)**2
     !end do
-    val = sqrt(sum((x1-x0)**2))
+    val = sqrt(sum((x1 - x0)**2))
   end function 
 
   function lambda_f(z, r0, froz_p, a, mu) result(val)
@@ -47,6 +47,9 @@ module force
     val = abs(-1.0_dp * 0.5_dp * p * (erf(s*(r-c)) - 1.0_dp))
   end function
 
+  ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
+  ! cell = cell_scaled, ion_iv = vp, vtype = v_type
+  ! velocity Verlet algorithm
   subroutine varystep_vv(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
       vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
@@ -90,6 +93,9 @@ module force
     end do
   end subroutine
 
+  ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
+  ! cell = cell_scaled, ion_iv = vp, vtype = v_type
+  ! Runge-Kutta method
   subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
       vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
@@ -108,14 +114,15 @@ module force
     vold = v
 
     acel = sqrt(sum(a(1,:)**2)) + tiny(1.0_dp) ! + tiny(1.0_dp) to prevent division by zero
-    dt = min(dt_max, acc * ion_iv / acel)
+    dt = min(dt_max, acc * ion_iv / acel) ! dt_max = abs(dx_step/vp)
     dt2 = dt * 0.5_dp
 
+    ! i = 1 -> ion, i > 1 -> target atoms
     do i = 1, natom
       a(i,:) = 0.0_dp
       if (i == 1) then
         do j = 2, natom
-          r = dist(x(i,:), x(j,:), cell)
+          r = dist(x(i,:), x(j,:), cell) ! distance between ion i and target atom j
           tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
           vprime(j) = -1.0_dp * tmp / r
           do ind = 1, 3
