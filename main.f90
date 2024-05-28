@@ -1,3 +1,7 @@
+! notes/comments:
+! v represents velocity OR potential
+! a represents acceleration OR atom (e.g.: a_pos = position of the atom, a_v = velocity of the atom)
+! ff is a factor leftover from transferring from pascal to fortran (set to 1 in indat.in file)
 program main
   use, intrinsic :: iso_fortran_env
   use stdlib_kinds, only: dp
@@ -25,7 +29,7 @@ program main
   implicit none
   !include 'mpif.h'
   real(dp), parameter :: tol = 1.0e-15_dp, &
-                         len_fact = 1.0_dp/0.529_dp, & ! 1/a_0 * 10e-10
+                         len_fact = 1.0_dp/0.529_dp, & ! from Angstrom to a.u.
                          mass_fact = 1822.89_dp, &
                          e_fact = 27.211_dp ! E_h/e, 1 a.u. = 27.211 eV
   integer(kind=int32), parameter :: expr = range(1.0_dp), &
@@ -37,6 +41,8 @@ program main
                            r_min_arr(:), tan_psi_arr(:), &
                            ion_xy_arr(:,:), a_pos_og(:,:), xx(:), yy(:), &
                            zz(:), ion_xx(:), ion_yy(:)
+  ! ion_zz = atomic number
+  ! n_cor, n_sta, n_cap: electrons in the core, stabilized and captured
   real(dp) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
               frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, &
               n_exp, cell(3), cell_scaled(3), factor, &
@@ -247,7 +253,7 @@ program main
   outfilename = prename // '_out.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
-      write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i ion_KE_f tar_KE qout r_min tan_phi tan_psi'
+      write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi'
     close(outputfile)
   end if
 
