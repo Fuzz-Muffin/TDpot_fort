@@ -73,7 +73,7 @@ module force
 
     do i = 1, natom
       do ind = 1, 3
-        x(i,ind) = xold(i,ind) + vold(i,ind) * dt + 0.5 * aold(i,ind)* dt**2
+        x(i,ind) = xold(i,ind) + vold(i,ind) * dt + 0.5 * aold(i,ind) * dt**2
       end do
     end do
 
@@ -88,7 +88,7 @@ module force
 
     do i = 1, natom
       do ind = 1, 3
-        v(i,ind) = vold(i,ind) + 0.5 * (aold(i,ind) + a(i,ind)) * dt
+        v(i,ind) = vold(i,ind) + 0.5 * (a(i,ind) + aold(i,ind)) * dt
       end do
     end do
   end subroutine
@@ -120,21 +120,27 @@ module force
     ! i = 1 -> ion, i > 1 -> target atoms
     do i = 1, natom
       a(i,:) = 0.0_dp
+      ! ion
       if (i == 1) then
         do j = 2, natom
           r = dist(x(i,:), x(j,:), cell) ! distance between ion i and target atom j
+          ! tmp: F = W/d, [F] = kg*m/s**2
           tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
+          ! vprime: F/l... force per length, [F/l] = kg/s**2
           vprime(j) = -1.0_dp * tmp / r
           do ind = 1, 3
+            ! [dx * vprime / mass] = m * kg/s**2 / kg = m/s**2
             a(1,ind) = a(1,ind) + (x(1,ind) - x(j,ind)) * vprime(j) / mass(1)
           end do
         end do
+      ! target atoms
       else
         do ind = 1, 3
           a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
         end do
       end if
 
+      ! half-step algorithm
       do ind = 1, 3
         v(i,ind) = vold(i,ind) + dt2 * a(i,ind)
         x(i,ind) = xold(i,ind) + 0.5_dp * (v(i,ind) + vold(i,ind)) * dt2
@@ -142,12 +148,11 @@ module force
     end do
 
     do i = 1, natom
-      a(i, :) = 0.0_dp
+      a(i,:) = 0.0_dp
       if (i == 1) then
         do j = 2, natom
           r = dist(x(1,:), x(j,:), cell)
-          tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, &
-                            ff, z(1), z(j), ddr)
+          tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
           vprime(j) = -1.0_dp * tmp / r
           do ind = 1, 3
             a(1,ind) = a(1,ind) + (x(1,ind) - x(j,ind)) * vprime(j) / mass(1)
@@ -159,6 +164,7 @@ module force
         end do
       end if
 
+      ! midpoint algorithm
       do ind = 1, 3
         v(i,ind) = vold(i,ind) + dt * a(i,ind)
         x(i,ind) = xold(i,ind) + 0.5 * (v(i,ind) + vold(i,ind)) * dt
