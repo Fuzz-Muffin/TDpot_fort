@@ -49,15 +49,14 @@ module force
 
   ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
   ! cell = cell_scaled, ion_iv = vp, vtype = v_type
-  ! velocity Verlet algorithm
-  subroutine varystep_vv(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
-      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
+  subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
+      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, method)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
     real(dp) :: x(:,:), v(:,:), a(:,:), &
                 mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
                 n_cap, n_sta, n_cor, r_cut, r
-    real(dp), allocatable :: xold(:,:), vold(:,:), vprime(:), aold(:,:)
-    integer :: i, j, ind, natom, vtype, verbose
+    real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:)
+    integer :: run, run_end, i, j, ind, natom, vtype, verbose, method
     natom = size(mass)
 
     if (.not. allocated(xold)) allocate(xold(natom,3))
@@ -68,106 +67,61 @@ module force
     vold = v
     aold = a
 
-    acel = sqrt(sum(a(1,:)**2)) + tiny(1.0_dp)
-    dt = min(dt_max, acc * ion_iv / acel)
-
-    do i = 1, natom
-      do ind = 1, 3
-        x(i,ind) = xold(i,ind) + vold(i,ind) * dt + 0.5 * aold(i,ind) * dt**2
-      end do
-    end do
-
-    do i = 1, natom
-      tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
-      vprime(j) = -1.0_dp * tmp / r
-      do ind = 1, 3
-        a(1,ind) = a(1,ind) + (x(1,ind) - x(i,ind)) * vprime(i) / mass(1)
-        a(i,ind) = a(i,ind) + (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
-      end do
-    end do
-
-    do i = 1, natom
-      do ind = 1, 3
-        v(i,ind) = vold(i,ind) + 0.5 * (a(i,ind) + aold(i,ind)) * dt
-      end do
-    end do
-  end subroutine
-
-  ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
-  ! cell = cell_scaled, ion_iv = vp, vtype = v_type
-  ! Runge-Kutta method
-  subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
-      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
-    real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
-    real(dp) :: x(:,:), v(:,:), a(:,:), &
-                mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
-                n_cap, n_sta, n_cor, r_cut, r
-    real(dp), allocatable :: xold(:,:), vold(:,:), vprime(:)
-    integer :: i, j, ind, natom, vtype, verbose
-    natom = size(mass)
-
-    if (.not. allocated(xold)) allocate(xold(natom,3))
-    if (.not. allocated(vold)) allocate(vold(natom,3))
-    if (.not. allocated(vprime)) allocate(vprime(natom))
-
-    xold = x
-    vold = v
-
     acel = sqrt(sum(a(1,:)**2)) + tiny(1.0_dp) ! + tiny(1.0_dp) to prevent division by zero
     dt = min(dt_max, acc * ion_iv / acel) ! dt_max = abs(dx_step/vp)
     dt2 = dt * 0.5_dp
 
-    ! i = 1 -> ion, i > 1 -> target atoms
-    do i = 1, natom
-      a(i,:) = 0.0_dp
-      ! ion
-      if (i == 1) then
-        do j = 2, natom
-          r = dist(x(i,:), x(j,:), cell) ! distance between ion i and target atom j
-          ! tmp: F = W/d, [F] = kg*m/s**2
-          tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
-          ! vprime: F/l... force per length, [F/l] = kg/s**2
-          vprime(j) = -1.0_dp * tmp / r
-          do ind = 1, 3
-            ! [dx * vprime / mass] = m * kg/s**2 / kg = m/s**2
-            a(1,ind) = a(1,ind) + (x(1,ind) - x(j,ind)) * vprime(j) / mass(1)
+    if (method == 1) then
+      run_end = 2
+    else
+      run_end = 1
+    end if
+
+    do run = 1, 2
+      ! i = 1 -> ion, i > 1 -> target atoms
+      do i = 1, natom
+        a(i,:) = 0.0_dp
+        ! ion
+        if (i == 1) then
+          do j = 2, natom
+            r = dist(x(i,:), x(j,:), cell) ! distance between ion i and target atom j
+            ! tmp: F = W/d, [F] = kg*m/s**2
+            tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
+            ! vprime: F/l... force per length, [F/l] = kg/s**2
+            vprime(j) = -1.0_dp * tmp / r
+            do ind = 1, 3
+              ! [dx * vprime / mass] = m * kg/s**2 / kg = m/s**2
+              a(1,ind) = a(1,ind) + (x(1,ind) - x(j,ind)) * vprime(j) / mass(1)
+            end do
           end do
-        end do
-      ! target atoms
-      else
-        do ind = 1, 3
-          a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
-        end do
-      end if
-
-      ! half-step algorithm
-      do ind = 1, 3
-        v(i,ind) = vold(i,ind) + dt2 * a(i,ind)
-        x(i,ind) = xold(i,ind) + 0.5_dp * (v(i,ind) + vold(i,ind)) * dt2
-      end do
-    end do
-
-    do i = 1, natom
-      a(i,:) = 0.0_dp
-      if (i == 1) then
-        do j = 2, natom
-          r = dist(x(1,:), x(j,:), cell)
-          tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
-          vprime(j) = -1.0_dp * tmp / r
+        ! target atoms
+        else
           do ind = 1, 3
-            a(1,ind) = a(1,ind) + (x(1,ind) - x(j,ind)) * vprime(j) / mass(1)
+            a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
           end do
-        end do
-      else
-        do ind = 1, 3
-          a(i, ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
-        end do
-      end if
+        end if
 
-      ! midpoint algorithm
-      do ind = 1, 3
-        v(i,ind) = vold(i,ind) + dt * a(i,ind)
-        x(i,ind) = xold(i,ind) + 0.5 * (v(i,ind) + vold(i,ind)) * dt
+        if (run == 1) then
+          if (method == 1) then
+            ! half-step algorithm
+            do ind = 1, 3
+              v(i,ind) = vold(i,ind) + dt2 * a(i,ind)
+              x(i,ind) = xold(i,ind) + 0.5_dp * (v(i,ind) + vold(i,ind)) * dt2
+            end do
+          else
+            ! velocity verlet
+            do ind = 1, 3
+              v(i,ind) = vold(i,ind) + 0.5 * (a(i,ind) + aold(i,ind)) * dt
+              x(i,ind) = xold(i,ind) + vold(i,ind) * dt + 0.5 * aold(i,ind) * dt**2
+            end do
+          end if
+        else
+          ! midpoint algorithm
+          do ind = 1, 3
+            v(i,ind) = vold(i,ind) + dt * a(i,ind)
+            x(i,ind) = xold(i,ind) + 0.5 * (v(i,ind) + vold(i,ind)) * dt
+          end do
+        end if
       end do
     end do
   end subroutine

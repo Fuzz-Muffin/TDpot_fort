@@ -312,13 +312,10 @@ program main
         write(6, '(5(f15.5))') sum(a_vel(1,:)**2), a_vel(1,:)
       end if
 
-      ! Runge-Kutta method
+      ! 1: Runge-Kutta method
+      ! 2: velocity Verlet algorithm
       call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
-
-      ! VV integrator
-      !call varystep_vv(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        !dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose)
+        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, 2)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
         r0, ion_ispeed, lam_a, frozen_par, lam_mu, alpha_max, r_min, gam_p, &
