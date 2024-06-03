@@ -19,7 +19,6 @@ program main
     load_target => load_target_fv
   use force, only: &
     varystep, &
-    varystep_vv, &
     update_ion, &
     !update_ion => update_ion_old, &
     calc_ion_props

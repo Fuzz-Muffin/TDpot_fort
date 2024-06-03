@@ -10,7 +10,7 @@ module force
                          e_fact = 27.211_dp
   
   private
-  public :: varystep, varystep_vv, update_ion, calc_ion_props, update_ion_old
+  public :: varystep, update_ion, calc_ion_props, update_ion_old
 
   contains
 
