@@ -77,7 +77,7 @@ module force
       run_end = 1
     end if
 
-    do run = 1, 2
+    do run = 1, run_end
       ! i = 1 -> ion, i > 1 -> target atoms
       do i = 1, natom
         a(i,:) = 0.0_dp
