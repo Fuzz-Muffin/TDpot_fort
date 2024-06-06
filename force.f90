@@ -54,8 +54,9 @@ module force
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
     real(dp) :: x(:,:), v(:,:), a(:,:), &
                 mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
-                n_cap, n_sta, n_cor, r_cut, r, e_pot
-    real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:), potential_energies(:), kinetic_energies(:)
+                n_cap, n_sta, n_cor, r_cut, r, e_pot, e_kin_ion
+    real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:), potential_energies(:), kinetic_energies(:), &
+                             e_kin_target(:)
     integer :: run, run_end, i, j, ind, natom, vtype, verbose, method, io, count
     logical :: exists
     natom = size(mass)
@@ -65,6 +66,7 @@ module force
     if (.not. allocated(vprime)) allocate(vprime(natom))
     if (.not. allocated(potential_energies)) allocate(potential_energies(natom))
     if (.not. allocated(kinetic_energies)) allocate(kinetic_energies(natom))
+    if (.not. allocated(e_kin_target)) allocate(e_kin_target(natom))
 
     xold = x
     vold = v
@@ -127,6 +129,12 @@ module force
           end do
         end if
 
+        if (i == 1) then
+          e_kin_ion = 0.5_dp * mass(i) * sum(v(i,:)**2) * e_fact
+        else
+          e_kin_target(i) = 0.5_dp * mass(i) * sum(v(i,:)**2) * e_fact
+        end if
+
         kinetic_energies(i) = 0.5_dp * mass(i) * sum(v(i,:)**2) * e_fact
 
       end do
@@ -136,16 +144,19 @@ module force
       inquire(file="log_energies.txt", exist=exists)
       if (exists) then
         open(newunit=io, file="log_energies.txt", status="replace", action="write")
-          write(io, *) count, sum(potential_energies), sum(kinetic_energies), sum(potential_energies) + sum(kinetic_energies)
+          write(io, *) count, sum(potential_energies), sum(kinetic_energies), &
+          sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
         close(io)
       else
         open(newunit=io, file="log_energies.txt", status="new", action="write")
-          write(io, *) count, sum(potential_energies), sum(kinetic_energies), sum(potential_energies) + sum(kinetic_energies)
+          write(io, *) count, sum(potential_energies), sum(kinetic_energies), &
+          sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
         close(io)
       end if
     else
       open(newunit=io, file="log_energies.txt", position="append", action="write")
-        write(io, *) count, sum(potential_energies), sum(kinetic_energies), sum(potential_energies) + sum(kinetic_energies)
+        write(io, *) count, sum(potential_energies), sum(kinetic_energies), &
+        sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
       close(io)
     end if
 

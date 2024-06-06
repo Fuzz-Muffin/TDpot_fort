@@ -16,7 +16,8 @@ program main
     print_xyz, &
     count_lines, &
     init_target, &
-    load_target => load_target_fv
+    load_target => load_target_fv, &
+    export_e_number
   use force, only: &
     varystep, &
     update_ion, &
@@ -326,6 +327,8 @@ program main
 
       if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
       if (verbose > 1) write(logfile, *) count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len
+
+      call export_e_number(n_cor, n_sta, n_cap, count)
 
       count = count + 1
     end do

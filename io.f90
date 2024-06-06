@@ -19,7 +19,8 @@ module io
             print_xyz, &
             load_target_fv, &
             count_lines, &
-            init_target
+            init_target, &
+            export_e_number
 
   contains
 
@@ -243,6 +244,28 @@ module io
         write(io, *) a_pos(i,1)/len_fact, a_pos(i,2)/len_fact, a_pos(i,3)/len_fact, a_zz(i), a_mass(i)/mass_fact
       end do
     close(io)
+  end subroutine
+
+  subroutine export_e_number(n_cor, n_sta, n_cap, count)
+    real(dp) :: n_cor, n_sta, n_cap
+    integer :: count, io
+    logical :: exists
+    if (count == 0) then
+      inquire(file="log_e_number.txt", exist=exists)
+      if (exists) then
+        open(newunit=io, file="log_e_number.txt", status="replace", action="write")
+          write(io, *) count, n_cor, n_sta, n_cap
+        close(io)
+      else
+        open(newunit=io, file="log_e_number.txt", status="new", action="write")
+          write(io, *) count, n_cor, n_sta, n_cap
+        close(io)
+      end if
+    else
+      open(newunit=io, file="log_e_number.txt", position="append", action="write")
+        write(io, *) count, n_cor, n_sta, n_cap
+      close(io)
+    end if
   end subroutine
 
 end module
