@@ -40,7 +40,7 @@ program main
                            ion_ke_arr(:), ke_tar_arr(:), tan_phi_arr(:), &
                            r_min_arr(:), tan_psi_arr(:), &
                            ion_xy_arr(:,:), a_pos_og(:,:), xx(:), yy(:), &
-                           zz(:), ion_xx(:), ion_yy(:)
+                           zz(:), ion_xx(:), ion_yy(:), a_pos_init(:,:)
 
   ! ion_zz: atomic number
   ! cell, cell_scaled: simulation cell in Angstrom and a.u.
@@ -229,6 +229,7 @@ program main
   allocate(a_zz(natom))
   allocate(a_vel(natom,3))
   allocate(a_acel(natom,3))
+  allocate(a_pos_init(natom,3))
 
   ! read in atom coordinates and distribute them among the procs
   if (myid == 0) then
@@ -305,6 +306,7 @@ program main
     end if
 
     count = 0
+    a_pos_init = a_pos
     do while (ion_trj_len < ion_trj_max)
 
       ! print the velocity of the ion
@@ -315,7 +317,7 @@ program main
       ! 1: Runge-Kutta method
       ! 2: velocity Verlet algorithm
       call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, 1)
+        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, a_pos_init, 1)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
         r0, ion_ispeed, lam_a, frozen_par, lam_mu, alpha_max, r_min, gam_p, &

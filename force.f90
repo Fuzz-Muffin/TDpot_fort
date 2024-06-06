@@ -50,11 +50,11 @@ module force
   ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
   ! cell = cell_scaled, ion_iv = vp, vtype = v_type
   subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
-      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, method)
+      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, x_init, method)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
     real(dp) :: x(:,:), v(:,:), a(:,:), &
                 mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
-                n_cap, n_sta, n_cor, r_cut, r, e_pot, e_kin_ion
+                n_cap, n_sta, n_cor, r_cut, r, e_pot, e_kin_ion, k, x_init(:,:)
     real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:), potential_energies(:), kinetic_energies(:), &
                              e_kin_target(:)
     integer :: run, run_end, i, j, ind, natom, vtype, verbose, method, io, count
@@ -71,6 +71,8 @@ module force
     xold = x
     vold = v
     aold = a
+
+    k = 10.0_dp
 
     acel = sqrt(sum(a(1,:)**2)) + tiny(1.0_dp) ! + tiny(1.0_dp) to prevent division by zero
     dt = min(dt_max, acc * ion_iv / acel) ! dt_max = abs(dx_step/vp)
@@ -103,7 +105,7 @@ module force
         ! target atoms
         else
           do ind = 1, 3
-            a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
+            a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i) - k * (x(i,ind) - x_init(i,ind)) / mass(i)
           end do
         end if
 
