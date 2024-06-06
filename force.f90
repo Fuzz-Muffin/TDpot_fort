@@ -50,18 +50,21 @@ module force
   ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
   ! cell = cell_scaled, ion_iv = vp, vtype = v_type
   subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
-      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, method)
+      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, method)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
     real(dp) :: x(:,:), v(:,:), a(:,:), &
                 mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
-                n_cap, n_sta, n_cor, r_cut, r
-    real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:)
-    integer :: run, run_end, i, j, ind, natom, vtype, verbose, method
+                n_cap, n_sta, n_cor, r_cut, r, e_pot
+    real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:), potential_energies(:), kinetic_energies(:)
+    integer :: run, run_end, i, j, ind, natom, vtype, verbose, method, io, count
+    logical :: exists
     natom = size(mass)
 
     if (.not. allocated(xold)) allocate(xold(natom,3))
     if (.not. allocated(vold)) allocate(vold(natom,3))
     if (.not. allocated(vprime)) allocate(vprime(natom))
+    if (.not. allocated(potential_energies)) allocate(potential_energies(natom))
+    if (.not. allocated(kinetic_energies)) allocate(kinetic_energies(natom))
 
     xold = x
     vold = v
@@ -86,7 +89,8 @@ module force
           do j = 2, natom
             r = dist(x(i,:), x(j,:), cell) ! distance between ion i and target atom j
             ! tmp: F = W/d, [F] = kg*m/s**2
-            tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr)
+            tmp = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, z(1), z(j), ddr, e_pot)
+            potential_energies(j) = e_pot
             ! vprime: F/l... force per length, [F/l] = kg/s**2
             vprime(j) = -1.0_dp * tmp / r
             do ind = 1, 3
@@ -122,8 +126,29 @@ module force
             x(i,ind) = xold(i,ind) + 0.5 * (v(i,ind) + vold(i,ind)) * dt
           end do
         end if
+
+        kinetic_energies(i) = 0.5_dp * mass(i) * sum(v(i,:)**2) * e_fact
+
       end do
     end do
+
+    if (count == 0) then
+      inquire(file="log_energies.txt", exist=exists)
+      if (exists) then
+        open(newunit=io, file="log_energies.txt", status="replace", action="write")
+          write(io, *) count, sum(potential_energies), sum(kinetic_energies), sum(potential_energies) + sum(kinetic_energies)
+        close(io)
+      else
+        open(newunit=io, file="log_energies.txt", status="new", action="write")
+          write(io, *) count, sum(potential_energies), sum(kinetic_energies), sum(potential_energies) + sum(kinetic_energies)
+        close(io)
+      end if
+    else
+      open(newunit=io, file="log_energies.txt", position="append", action="write")
+        write(io, *) count, sum(potential_energies), sum(kinetic_energies), sum(potential_energies) + sum(kinetic_energies)
+      close(io)
+    end if
+
   end subroutine
 
   subroutine update_ion(dt, t, x, z, n_sta, n_cap, n_cor, factor, ff, r0, ion_iv, &

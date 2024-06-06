@@ -38,10 +38,12 @@ module potentials
      val = tmp + (phi1 + phi2 + phi3) * n_cap * zj / r
   end function
 
-  function calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj, ddr) result(val)
+  function calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj, ddr, e_pot) result(val)
     real(dp), intent(in) :: r, r0, n_sta, n_cor, n_cap, ff, zi, zj, r_cut, ddr
     integer, intent(in) :: vtype
-    real(dp) :: val, v1, v2, dr
+    real(dp) :: val, v1, v2, dr, e_pot
+
+    e_pot = 0.0_dp
 
     if (r > r_cut) then
       val = 0.0_dp
@@ -59,6 +61,8 @@ module potentials
           v2 = v_hollow_krc(r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj)
       end select
 
+      e_pot = v2
+
       ! val: F = W/d, [F] = kg*m/s**2
       val = (v1 - v2) / dr
 
@@ -68,7 +72,7 @@ module potentials
   subroutine print_pot(r0, n_cap, n_sta, n_cor, r_cut, ff, ddr, zi, zj, vtype)
     real(dp), intent(in) :: r0, ff, ddr, r_cut, n_cap, n_sta, n_cor, zi, zj
     integer, intent(in) :: vtype
-    real(dp) :: r, v, dv, dr
+    real(dp) :: r, v, dv, dr, e_pot
     integer :: i, iofile
 
     dr = 0.01
@@ -77,7 +81,7 @@ module potentials
     do i = 1, 1000
       r = i * dr
       v = v_hollow_krc(r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj)
-      dv = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj, ddr)
+      dv = calc_vprime(vtype, r, r0, r_cut, n_sta, n_cor, n_cap, ff, zi, zj, ddr, e_pot)
       write(iofile, *) r, v, dv
     end do
     close(iofile)
