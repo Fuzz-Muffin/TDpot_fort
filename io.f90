@@ -246,24 +246,24 @@ module io
     close(io)
   end subroutine
 
-  subroutine export_e_number(n_cor, n_sta, n_cap, count)
-    real(dp) :: n_cor, n_sta, n_cap
+  subroutine export_e_number(n_cor, n_sta, n_cap, count, a_pos_z)
+    real(dp) :: n_cor, n_sta, n_cap, a_pos_z
     integer :: count, io
     logical :: exists
     if (count == 0) then
       inquire(file="log_e_number.txt", exist=exists)
       if (exists) then
         open(newunit=io, file="log_e_number.txt", status="replace", action="write")
-          write(io, *) count, n_cor, n_sta, n_cap
+          write(io, *) a_pos_z, n_cor, n_sta, n_cap
         close(io)
       else
         open(newunit=io, file="log_e_number.txt", status="new", action="write")
-          write(io, *) count, n_cor, n_sta, n_cap
+          write(io, *) a_pos_z, n_cor, n_sta, n_cap
         close(io)
       end if
     else
       open(newunit=io, file="log_e_number.txt", position="append", action="write")
-        write(io, *) count, n_cor, n_sta, n_cap
+        write(io, *) a_pos_z, n_cor, n_sta, n_cap
       close(io)
     end if
   end subroutine

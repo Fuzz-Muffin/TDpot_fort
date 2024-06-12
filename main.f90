@@ -51,7 +51,8 @@ program main
               n_exp, cell(3), cell_scaled(3), factor, &
               n_cor, n_sta, n_cap, r_min, r0, dt, dt_max, t, ion_trj_len, ddr, &
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
-              tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp
+              tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp, start_time, &
+              finish_time
   integer, allocatable :: ion_qout_arr(:)
 
   ! v_type: potential type
@@ -267,6 +268,7 @@ program main
   ! ion fly event starts here !
   !===============================!
   ii = 0
+  call cpu_time(start_time)
   do i_ion = istart, istop
     ii = ii + 1
 
@@ -317,7 +319,7 @@ program main
       ! 1: Runge-Kutta method
       ! 2: velocity Verlet algorithm
       call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, a_pos_init, 1)
+        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, a_pos_init, 2)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
         r0, ion_ispeed, lam_a, frozen_par, lam_mu, alpha_max, r_min, gam_p, &
@@ -330,7 +332,9 @@ program main
       if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
       if (verbose > 1) write(logfile, *) count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len
 
-      call export_e_number(n_cor, n_sta, n_cap, count)
+      if (verbose > 0) then
+        call export_e_number(n_cor, n_sta, n_cap, count, a_pos(1,3))
+      end if
 
       count = count + 1
     end do
@@ -375,6 +379,8 @@ program main
 
     if (verbose > 1) close(logfile)
   end do
+  call cpu_time(finish_time)
+  print *, "Time for calculating ion fly event: ", finish_time - start_time, " s"
 
   do icpu = 0, ncpu - 1
     if (myid == icpu) then

@@ -3,9 +3,53 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-folder = "/home/lukas/simulations/tdpot/slg/xe/q8/ekin167/"
-method = "rk"
+# from plot template
+from matplotlib import rcParams
+from matplotlib import ticker as mticker
+from matplotlib.ticker import MultipleLocator
+rcParams.update({'font.size': 9}) # changed from 36 to 9
+rcParams.update({"xtick.direction": "in", "ytick.direction": "in"})
+rcParams['font.sans-serif'] = "Helvetica"
+rcParams['font.family'] = "sans-serif"
+rcParams['lines.linewidth'] = 1 # changed from 2 to 1
+    # width and length of the ticks
+twdith = 2.5
+rcParams.update({'xtick.major.width': twdith})
+rcParams['ytick.major.width'] = twdith
+rcParams['xtick.minor.width'] = twdith
+rcParams['ytick.minor.width'] = twdith
+tlenmaj = 9
+rcParams['xtick.major.size'] = tlenmaj
+rcParams['ytick.major.size'] = tlenmaj
+tlenmaj = 6
+rcParams['xtick.minor.size'] = tlenmaj
+rcParams['ytick.minor.size'] = tlenmaj
+rcParams['xtick.major.pad']='8'
+rcParams['ytick.major.pad']='8'
+    # colors
+t4imaroon = '#941751'
+t4iblue = '#006699'
+t4ipetrol = '#007E71'
+t4ipurp = '#531B93'
+t4iorange = '#FF9300'
+t4irose = '#FF818E'
+t4ilime = '#8EFA00'
+t4iturq = '#00FDFF'
+t4istraw = '#FF2F92'
+t4ivio = '#9E7BFF'
+    # setup
+fig = plt.figure(figsize=(21, 7)) # changed from (10.5, 7) to (21, 7)
+ax = fig.add_subplot(111)
+plt.setp(ax.spines.values(), lw=3)
+fig.subplots_adjust(top=0.985, bottom=0.15, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.17 to 0.19
+#
 
+# settings
+folder = "/home/lukas/simulations/tdpot/project_thesis/performance/q8_10keV/"
+method = "bla"
+#
+
+# get data
 energie_data = np.loadtxt(os.path.join(folder, "log_energies_" + method + ".txt"))
 energie_data_T = energie_data.T
 
@@ -19,45 +63,42 @@ electrons_data_T = electrons_data.T
 
 n_sta = electrons_data_T[2]
 n_cap = electrons_data_T[3]
+#
 
-if False:
-    e_pot /= np.max(np.abs(e_pot))
-    e_kin /= np.max(np.abs(e_kin))
-    energy /= np.max(np.abs(energy))
-
-if False:
-    e_pot /= e_pot[0]
-    e_kin /= e_kin[0]
-    energy /= energy[0]
-
+# plot
 fig, host = plt.subplots(layout="constrained")
 
-host.set_xlabel("count")
-host.set_ylabel("E_pot + E_kin (eV)")
-
+host.set_xlabel(r"Distance to target in z (a.u.)")
+host.set_ylabel(r"$E_{pot}$ + $E_{kin}$ (eV)")
+host.yaxis.label.set_color(t4imaroon)
 ax2 = host.twinx()
-ax2.set_ylabel("E_pot (eV)")
-
+ax2.set_ylabel(r"$E_{pot}$ (eV)")
+ax2.yaxis.label.set_color(t4iblue)
 ax3 = host.twinx()
-ax3.set_ylabel("E_kin (eV)")
-
+ax3.set_ylabel(r"$E_{kin}$ (eV)")
+ax3.yaxis.label.set_color(t4iorange)
 ax4 = host.twinx()
-ax4.set_ylabel("e sta")
-
+ax4.set_ylabel(r"Captured electrons")
+ax4.yaxis.label.set_color(t4ivio)
 ax5 = host.twinx()
-ax5.set_ylabel("e cap")
+ax5.set_ylabel(r"Stabilized electrons")
+ax5.yaxis.label.set_color(t4ipurp)
 
-p1 = host.plot(t, energy, label="E_pot + E_kin", color="blue")
-p2 = ax2.plot(t, e_pot, label="E_pot", color="orange", linestyle="--")
-p3 = ax3.plot(t, e_kin, label="E_kin", color="green", linestyle="--")
-ax3.spines["right"].set_position(("outward", 50))
+ax3.spines["right"].set_position(("outward", 40))
+ax4.spines["right"].set_position(("outward", 100))
+ax5.spines["right"].set_position(("outward", 160))
 
-p4 = ax4.plot(t, n_sta, label="e sta", color="red")
-ax4.spines["right"].set_position(("outward", 120))
-p5 = ax5.plot(t, n_cap, label="e cap", color="yellow")
-ax5.spines["right"].set_position(("outward", 170))
+p1 = host.plot(t, energy, color=t4imaroon, linestyle=":", linewidth=2)
+p2 = ax2.plot(t, e_pot, color=t4iblue)
+p3 = ax3.plot(t, e_kin, color=t4iorange)
+p4 = ax4.plot(t, n_cap, color=t4ivio, linestyle="--")
+p5 = ax5.plot(t, n_sta, color=t4ipurp, linestyle="--")
 
-plt.xlim(4000, 7001)
-host.legend(handles=p1+p2+p3+p4+p5, loc="lower right")
-
+plt.xlim(-15, 15)
 plt.savefig(os.path.join(folder, "log_energies_" + method + ".jpg"), dpi=600)
+
+    # from plot template
+ax.xaxis.set_major_locator(MultipleLocator(10)) # changed from 5 to 10
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_minor_locator(mticker.LogLocator(numticks=999, subs="auto"))
+#
