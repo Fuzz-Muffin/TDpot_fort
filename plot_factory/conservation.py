@@ -46,11 +46,12 @@ fig.subplots_adjust(top=0.985, bottom=0.15, left=0.19, right=0.97, hspace=0.05, 
 
 # settings
 folder = "/home/lukas/simulations/tdpot/project_thesis/performance/q8_10keV/"
-method = "bla"
+method = "1"
+ion_nr = "1"
 #
 
 # get data
-energie_data = np.loadtxt(os.path.join(folder, "log_energies_" + method + ".txt"))
+energie_data = np.loadtxt(os.path.join(folder, "log_energies_" + method + "_" + ion_nr + ".txt"))
 energie_data_T = energie_data.T
 
 t = energie_data_T[0]
@@ -58,7 +59,7 @@ e_pot = energie_data_T[1]
 e_kin = energie_data_T[2]
 energy = energie_data_T[3]
 
-electrons_data = np.loadtxt(os.path.join(folder, "log_e_number_" + method + ".txt"))
+electrons_data = np.loadtxt(os.path.join(folder, "log_e_number_" + method + "_" + ion_nr + ".txt"))
 electrons_data_T = electrons_data.T
 
 n_sta = electrons_data_T[2]
@@ -95,7 +96,7 @@ p4 = ax4.plot(t, n_cap, color=t4ivio, linestyle="--")
 p5 = ax5.plot(t, n_sta, color=t4ipurp, linestyle="--")
 
 plt.xlim(-15, 15)
-plt.savefig(os.path.join(folder, "log_energies_" + method + ".jpg"), dpi=600)
+plt.savefig(os.path.join(folder, "log_energies_" + method + "_" + ion_nr + ".jpg"), dpi=600)
 
     # from plot template
 ax.xaxis.set_major_locator(MultipleLocator(10)) # changed from 5 to 10

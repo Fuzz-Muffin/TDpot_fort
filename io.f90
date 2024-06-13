@@ -1,5 +1,6 @@
 module io
   use stdlib_kinds, only: sp, dp
+  use stdlib_strings, only: to_string
   use stdlib_random, only: random_seed
   use stdlib_stats_distribution_uniform, only: uni => rvs_uniform
   use stdlib_stats_distribution_normal, only: norm => rvs_normal
@@ -246,23 +247,24 @@ module io
     close(io)
   end subroutine
 
-  subroutine export_e_number(n_cor, n_sta, n_cap, count, a_pos_z)
+  subroutine export_e_number(n_cor, n_sta, n_cap, count, a_pos_z, method, i_ion)
     real(dp) :: n_cor, n_sta, n_cap, a_pos_z
-    integer :: count, io
+    integer :: count, io, method, i_ion
     logical :: exists
+
     if (count == 0) then
-      inquire(file="log_e_number.txt", exist=exists)
+      inquire(file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", exist=exists)
       if (exists) then
-        open(newunit=io, file="log_e_number.txt", status="replace", action="write")
+        open(newunit=io, file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="replace", action="write")
           write(io, *) a_pos_z, n_cor, n_sta, n_cap
         close(io)
       else
-        open(newunit=io, file="log_e_number.txt", status="new", action="write")
+        open(newunit=io, file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="new", action="write")
           write(io, *) a_pos_z, n_cor, n_sta, n_cap
         close(io)
       end if
     else
-      open(newunit=io, file="log_e_number.txt", position="append", action="write")
+      open(newunit=io, file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", position="append", action="write")
         write(io, *) a_pos_z, n_cor, n_sta, n_cap
       close(io)
     end if

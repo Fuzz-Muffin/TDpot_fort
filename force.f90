@@ -1,5 +1,6 @@
 module force
   use stdlib_kinds, only: sp, dp
+  use stdlib_strings, only: to_string
   use potentials, only: calc_vprime
   use stdlib_stats_distribution_normal, only: norm_samp => rvs_normal
 
@@ -51,14 +52,14 @@ module force
   ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
   ! cell = cell_scaled, ion_iv = vp, vtype = v_type
   subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
-      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, x_init, method)
+      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, x_init, method, i_ion)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
     real(dp) :: x(:,:), v(:,:), a(:,:), &
                 mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
                 n_cap, n_sta, n_cor, r_cut, r, e_pot, e_kin_ion, k, x_init(:,:)
     real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:), potential_energies(:), kinetic_energies(:), &
                              e_kin_target(:)
-    integer :: run, run_end, i, j, ind, natom, vtype, verbose, method, io, count
+    integer :: run, run_end, i, j, ind, natom, vtype, verbose, method, io, count, i_ion
     logical :: exists
     natom = size(mass)
 
@@ -146,20 +147,20 @@ module force
 
     if (verbose > 0) then
       if (count == 0) then
-        inquire(file="log_energies.txt", exist=exists)
+        inquire(file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", exist=exists)
         if (exists) then
-          open(newunit=io, file="log_energies.txt", status="replace", action="write")
+          open(newunit=io, file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="replace", action="write")
             write(io, *) x(1,3), sum(potential_energies), sum(kinetic_energies), &
             sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
           close(io)
         else
-          open(newunit=io, file="log_energies.txt", status="new", action="write")
+          open(newunit=io, file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="new", action="write")
             write(io, *) x(1,3), sum(potential_energies), sum(kinetic_energies), &
             sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
           close(io)
         end if
       else
-        open(newunit=io, file="log_energies.txt", position="append", action="write")
+        open(newunit=io, file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", position="append", action="write")
           write(io, *) x(1,3), sum(potential_energies), sum(kinetic_energies), &
           sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
         close(io)

@@ -59,7 +59,7 @@ program main
   integer :: i, j, k, n, nion, verbose, v_type, natom, logfile, &
              nprint, count, is_xyz, ion_qin, ion_qout, i_ion, iofile, &
              myid, ncpu, stat(MPI_STATUS_SIZE), err, nchunk, istart, istop, ii, icpu, &
-             outputfile, ntargetatom, rem
+             outputfile, ntargetatom, rem, method
   character(len=:), allocatable :: fname_input, fname_target, prename, ion_elem, v_typename, &
                                    logfilename, xyzfilename, outfilename
   character(len=*),parameter :: mkdir = 'mkdir -p '
@@ -100,12 +100,17 @@ program main
   lam_mu = 1.0_dp
   r_cut = 10.0_dp  !*len_fact
 
+  ! choose method:
+  ! 1: Runge-Kutta method
+  ! 2: velocity Verlet algorithm
+  method = 1
+
   ! set potential type switch
   v_type = set_potential(v_typename)
   if ((verbose > 0) .and. (myid == 0)) then
     print *, 'Hallo, dis ist Arnold... your instructor.'
     print *, 'VERBOSE MODE ACTIVATED NYGARAHRARHAARHR!'
-    call system( mkdir // 'logs')
+    call system( mkdir // 'logs_' // to_string(method))
     !call print_arnie()
   end if
 
@@ -257,7 +262,7 @@ program main
   end if
 
   ! create an output file for the results
-  outfilename = prename // '_out.txt'
+  outfilename = prename // '_out_' // to_string(method) // '.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
       write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi'
@@ -281,11 +286,11 @@ program main
     ! logging stuff
     if (verbose > 0) print *, 'Shoot ion ', to_string(i_ion), ' of ', nion
     if (verbose > 1) then
-      logfilename = 'logs/' // prename // '_' // to_string(i_ion) // '.log'
+      logfilename = 'logs_' // to_string(method) // '/' // prename // '_' // to_string(i_ion) // '.log'
       open(newunit=logfile, file=logfilename, action='write')
     end if
 
-    xyzfilename = 'logs/ion_' // to_string(i_ion) // '.xyz'
+    xyzfilename = 'logs_' // to_string(method) // '/ion_' // to_string(i_ion) // '.xyz'
 
     call setup_sim(ion_zi, ion_zf, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_zz, ion_mass, ion_qin, ion_ke, a_pos, &
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
@@ -316,10 +321,8 @@ program main
         write(6, '(5(f15.5))') sum(a_vel(1,:)**2), a_vel(1,:)
       end if
 
-      ! 1: Runge-Kutta method
-      ! 2: velocity Verlet algorithm
       call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, a_pos_init, 2)
+        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, a_pos_init, method, i_ion)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
         r0, ion_ispeed, lam_a, frozen_par, lam_mu, alpha_max, r_min, gam_p, &
@@ -333,7 +336,7 @@ program main
       if (verbose > 1) write(logfile, *) count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len
 
       if (verbose > 0) then
-        call export_e_number(n_cor, n_sta, n_cap, count, a_pos(1,3))
+        call export_e_number(n_cor, n_sta, n_cap, count, a_pos(1,3), method, i_ion)
       end if
 
       count = count + 1
