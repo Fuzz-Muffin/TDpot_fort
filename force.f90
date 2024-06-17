@@ -52,7 +52,7 @@ module force
   ! x = a_pos, v = a_vel, a = a_acel, mass = a_mass, z = a_zz
   ! cell = cell_scaled, ion_iv = vp, vtype = v_type
   subroutine varystep(t, x, v, a, mass, z, cell, ion_iv, acc, dt_max, &
-      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, x_init, method, i_ion)
+      vtype, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, x_init, method, i_ion, springs, export_files)
     real(dp), intent(in) :: acc, dt_max, ion_iv, ddr, r0
     real(dp) :: x(:,:), v(:,:), a(:,:), &
                 mass(:), z(:), cell(:), dt, dt2, acel, tmp, t, ff, &
@@ -60,7 +60,7 @@ module force
     real(dp), allocatable :: xold(:,:), vold(:,:), aold(:,:), vprime(:), potential_energies(:), kinetic_energies(:), &
                              e_kin_target(:)
     integer :: run, run_end, i, j, ind, natom, vtype, verbose, method, io, count, i_ion
-    logical :: exists
+    logical :: exists, springs, export_files
     natom = size(mass)
 
     if (.not. allocated(xold)) allocate(xold(natom,3))
@@ -108,7 +108,10 @@ module force
         ! target atoms
         else
           do ind = 1, 3
-            a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)! - k * (x(i,ind) - x_init(i,ind)) / mass(i)
+            a(i,ind) = (x(i,ind) - x(1,ind)) * vprime(i) / mass(i)
+            if (springs .eqv. .true.) then
+              a(i,ind) = a(i,ind) - k * (x(i,ind) - x_init(i,ind)) / mass(i)
+            end if
           end do
         end if
 
@@ -145,7 +148,7 @@ module force
       end do
     end do
 
-    if (verbose > 0) then
+    if ((verbose > 0) .and. (export_files .eqv. .true.)) then
       if (count == 0) then
         inquire(file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", exist=exists)
         if (exists) then

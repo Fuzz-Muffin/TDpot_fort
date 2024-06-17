@@ -63,7 +63,7 @@ program main
   character(len=:), allocatable :: fname_input, fname_target, prename, ion_elem, v_typename, &
                                    logfilename, xyzfilename, outfilename
   character(len=*),parameter :: mkdir = 'mkdir -p '
-  logical :: exists
+  logical :: exists, springs, export_files
 
   ! standard MPI initialisation
   type(MPI_Datatype) :: dptype
@@ -76,7 +76,7 @@ program main
   if (myid == 0 .and. verbose > 0) print *, ncpu, ' processors for calculation'
   do icpu = 0, ncpu - 1
     if ((verbose > 0) .and. (myid == icpu)) print *, 'hello from proc', myid
-    call MPI_BARRIER( MPI_COMM_WORLD, err)
+    call MPI_BARRIER(MPI_COMM_WORLD, err)
   end do
 
   ! hard code for now
@@ -92,7 +92,7 @@ program main
         frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
         is_xyz, v_typename, fname_target)
     end if
-    call MPI_BARRIER( MPI_COMM_WORLD, err)
+    call MPI_BARRIER(MPI_COMM_WORLD, err)
   end do
 
   ! some constants
@@ -104,6 +104,13 @@ program main
   ! 1: Runge-Kutta method
   ! 2: velocity Verlet algorithm
   method = 1
+
+  ! choose if harmonic bonds in target should be applied:
+  springs = .true.
+
+  ! choose if output files should be generated (energies, number of electrons):
+  ! (huge amount of data! only use for small number of ions!)
+  export_files = .true.
 
   ! set potential type switch
   v_type = set_potential(v_typename)
@@ -322,7 +329,8 @@ program main
       end if
 
       call varystep(t, a_pos, a_vel, a_acel, a_mass, a_zz, cell_scaled, vp, acc, &
-        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, count, a_pos_init, method, i_ion)
+        dt_max, v_type, ff, ddr, n_cap, n_sta, n_cor, r_cut, r0, dt, verbose, &
+        count, a_pos_init, method, i_ion, springs, export_files)
 
       call update_ion(dt, t, a_pos, a_zz, n_sta, n_cap, n_cor, factor, ff, &
         r0, ion_ispeed, lam_a, frozen_par, lam_mu, alpha_max, r_min, gam_p, &
@@ -335,7 +343,7 @@ program main
       if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
       if (verbose > 1) write(logfile, *) count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len
 
-      if (verbose > 0) then
+      if ((verbose > 0) .and. (export_files .eqv. .true.)) then
         call export_e_number(n_cor, n_sta, n_cap, count, a_pos(1,3), method, i_ion)
       end if
 
