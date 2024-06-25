@@ -1,3 +1,5 @@
+# compares the conservation of kinetic energy in the target in respect of the integrator
+
 import os
 
 import matplotlib.pyplot as plt
@@ -7,7 +9,7 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib import ticker as mticker
 from matplotlib.ticker import MultipleLocator
-rcParams.update({'font.size': 36})
+rcParams.update({'font.size': 26}) # changed from 36 to 26
 rcParams.update({"xtick.direction": "in", "ytick.direction": "in"})
 rcParams['font.sans-serif'] = "Helvetica"
 rcParams['font.family'] = "sans-serif"
@@ -41,12 +43,12 @@ t4ivio = '#9E7BFF'
 fig = plt.figure(figsize=(10.5, 7))
 ax = fig.add_subplot(111)
 plt.setp(ax.spines.values(), lw=3)
-fig.subplots_adjust(top=0.985, bottom=0.15, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.17 to 0.19
+fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.15 to 0.16, changed 0.17 to 0.19
 #
 
 # settings
 folder = "/home/lukas/simulations/tdpot/project_thesis/springs/q30_100keV/tlg/"
-ion_nr = "1"
+ion_nr = "3"
 #
 
 # get data
@@ -64,7 +66,6 @@ e_kin_vv = energie_data_vv_T[5]
 #
 
 # plot
-
 plt.plot(t_rk, e_kin_rk, color=t4iblue, label="Runge-Kutta method")
 plt.plot(t_vv, e_kin_vv, color=t4imaroon, label ="Verlet integration", linestyle="--")
 
@@ -72,7 +73,6 @@ plt.xlabel(r"Distance to target in z (a.u.)")
 plt.ylabel(r"$E_{kin}$ (eV)")
 
 plt.legend()
-#plt.xlim(-15, 15)
 plt.savefig(os.path.join(folder, "log_energies_" + ion_nr + ".jpg"), dpi=600)
 
     # from plot template
