@@ -106,7 +106,7 @@ program main
   method = 2
 
   ! choose if harmonic bonds in target should be applied:
-  springs = .false.
+  springs = .true.
 
   ! choose if output files should be generated (energies, number of electrons):
   ! (huge amount of data! only use for small number of ions!)

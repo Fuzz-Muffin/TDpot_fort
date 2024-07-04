@@ -1,3 +1,5 @@
+# compares the speed of the simulation using different integrators
+
 import os
 
 import matplotlib.pyplot as plt
@@ -6,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import ticker as mticker
 from matplotlib.ticker import MultipleLocator
-rcParams.update({'font.size': 26}) # changed from 36 to 26
+rcParams.update({'font.size': 32}) # changed from 36 to 32
 rcParams.update({"xtick.direction": "in", "ytick.direction": "in"})
 rcParams['font.sans-serif'] = "Helvetica"
 rcParams['font.family'] = "sans-serif"
@@ -40,7 +42,7 @@ t4ivio = '#9E7BFF'
 fig = plt.figure(figsize=(10.5, 7))
 ax = fig.add_subplot(111)
 plt.setp(ax.spines.values(), lw=3)
-fig.subplots_adjust(top=0.985, bottom=0.15, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.17 to 0.19
+fig.subplots_adjust(top=0.985, bottom=0.15, left=0.17, right=0.97, hspace=0.05, wspace=0.2)
 #
 
 # settings
@@ -63,14 +65,13 @@ with open (file, "r") as f:
 #
 
 # plot
-
 plt.plot(n, rk, color=t4iblue, label="Runge-Kutta method")
 plt.plot(n, vv, color=t4imaroon, label ="Verlet integration")
 
 plt.xlabel(r"Number of ions")
 plt.ylabel(r"Duration of simulation (s)")
 
-plt.legend()
+plt.legend(fontsize=20, frameon=False)
 plt.savefig(os.path.join(folder, "performance_test.jpg"), dpi=600)
 
     # from plot template

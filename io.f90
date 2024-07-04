@@ -202,6 +202,7 @@ module io
 
     dir = ion_zf - ion_zi
     a_v(1,3) = sign(vp, dir)
+    ! calculate velocity vector
 
     ! place ion in the center of the target
     do i = 2, natom
@@ -209,9 +210,11 @@ module io
       do ind = 1, 2
         if (abs(delta(ind)) > (cell_scaled(ind) * 0.5_dp)) then
           a_pos(i,ind) = a_pos(i,ind) - cell_scaled(ind) * dnint(delta(ind)/cell_scaled(ind))
-        end if  
-      end do 
+        end if
+      end do
     end do
+
+    ! translate ion to correct coordinates
 
     if (sigma_therm > 0.0) then
       do i = 2, natom

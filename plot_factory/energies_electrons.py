@@ -1,3 +1,5 @@
+# plots the energies and electron number over the distance
+
 import os
 
 import matplotlib.pyplot as plt
@@ -41,12 +43,12 @@ t4ivio = '#9E7BFF'
 fig = plt.figure(figsize=(21, 7)) # changed from (10.5, 7) to (21, 7)
 ax = fig.add_subplot(111)
 plt.setp(ax.spines.values(), lw=3)
-fig.subplots_adjust(top=0.985, bottom=0.15, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.17 to 0.19
+fig.subplots_adjust(top=0.985, bottom=0.15, left=0.17, right=0.97, hspace=0.05, wspace=0.2)
 #
 
 # settings
-folder = "/home/lukas/simulations/tdpot/project_thesis/performance/q8_10keV/"
-method = "1"
+folder = "/home/lukas/simulations/tdpot/project_thesis/electron_capture/"
+method = "2"
 ion_nr = "1"
 #
 
@@ -85,9 +87,9 @@ ax5 = host.twinx()
 ax5.set_ylabel(r"Stabilized electrons")
 ax5.yaxis.label.set_color(t4ipurp)
 
-ax3.spines["right"].set_position(("outward", 40))
-ax4.spines["right"].set_position(("outward", 100))
-ax5.spines["right"].set_position(("outward", 160))
+ax3.spines["right"].set_position(("outward", 50))
+ax4.spines["right"].set_position(("outward", 115))
+ax5.spines["right"].set_position(("outward", 165))
 
 p1 = host.plot(t, energy, color=t4imaroon, linestyle=":", linewidth=2)
 p2 = ax2.plot(t, e_pot, color=t4iblue)

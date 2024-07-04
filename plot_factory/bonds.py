@@ -1,4 +1,4 @@
-# compares the conservation of kinetic energy in the target in respect of springs
+# compares the conservation of kinetic energy in the target in respect of bonds
 
 import os
 
@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib import ticker as mticker
 from matplotlib.ticker import MultipleLocator
-rcParams.update({'font.size': 20}) # changed from 36 to 20
+rcParams.update({'font.size': 32}) # changed from 36 to 32
 rcParams.update({"xtick.direction": "in", "ytick.direction": "in"})
 rcParams['font.sans-serif'] = "Helvetica"
 rcParams['font.family'] = "sans-serif"
@@ -43,7 +43,7 @@ t4ivio = '#9E7BFF'
 fig = plt.figure(figsize=(10.5, 7))
 ax = fig.add_subplot(111)
 plt.setp(ax.spines.values(), lw=3)
-fig.subplots_adjust(top=0.985, bottom=0.15, left=0.1, right=0.97, hspace=0.05, wspace=0.2) # changed 0.17 to 0.1
+fig.subplots_adjust(top=0.985, bottom=0.15, left=0.20, right=0.97, hspace=0.05, wspace=0.2) # changed from 0.17 to 20
 #
 
 # settings
@@ -68,13 +68,13 @@ e_kin_2 = energie_data_2_T[5]
 #
 
 # plot
-plt.plot(t_1, e_kin_1, color=t4iblue, label="Harmonic bonds")
-plt.plot(t_2, e_kin_2, color=t4imaroon, label ="No harmonic bonds")
+plt.plot(t_2, e_kin_2, color=t4iblue, label ="No harmonic bonds")
+plt.plot(t_1, e_kin_1, color=t4imaroon, label="Harmonic bonds", linestyle="--")
 
 plt.xlabel(r"Distance to target in z (a.u.)")
 plt.ylabel(r"$E_{kin}$ (eV)")
 
-plt.legend()
+plt.legend(fontsize=20, frameon=False)
 plt.savefig(os.path.join(folder_2, "log_energies_bonds_" + integrator + "_" + ion_nr + ".jpg"), dpi=600)
 
     # from plot template
