@@ -53,14 +53,15 @@ module io
   subroutine read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
     ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, frozen_par, &
     alpha_max, ion_zi, ion_zf, dx_step, acc, nhist, log_mode, is_xyz, v_typename, &
-    fname_target)
+    chi_min, chi_max, omega_min, omega_max, fname_target)
 
     character(len=:), allocatable, intent(in) :: fname_input
     character(len=:), allocatable :: prename, ion_elem, fname_target, v_typename
     character(len=512) :: tmpstr
     real(dp) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
       frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, &
-      gam_p, gam_c, gam_s, gam_cut
+      gam_p, gam_c, gam_s, gam_cut, &
+      chi_min, chi_max, omega_min, omega_max
     integer :: log_mode, nhist, io, stat, ion_qin, is_xyz
 
     open(newunit=io, file=fname_input, status='old', action='read')
@@ -74,6 +75,7 @@ module io
       read(io, *) ff
       read(io, *) fwhm_qout, sigma_therm, frozen_par, alpha_max
       read(io, *) ion_zi, ion_zf, dx_step, acc, nhist
+      read(io, *) chi_min, chi_max, omega_min, omega_max
       read(io, *) gam_p, gam_c, gam_s, gam_cut
       read(io, *) log_mode, is_xyz
       read(io, *, iostat=stat) tmpstr
@@ -167,10 +169,12 @@ module io
 
   subroutine setup_sim(ion_zi, ion_zf, ion_x, ion_y, ion_zz, ion_m, ion_qin, ion_ke, a_pos, &
                        a_mass, a_zz, a_v, a_a, cell, cell_scaled, n_cor, n_sta, n_cap, &
-                       factor, ff, r0, r_min, vp, sigma_therm)
+                       factor, ff, r0, r_min, vp, sigma_therm, &
+                       chi_min, chi_max, omega_min, omega_max, chi, omega)
     real(dp), intent(in) :: ion_zi, ion_zf, ion_m, ion_zz, factor, ion_ke, cell(3), cell_scaled(3), sigma_therm
     real(dp) :: a_pos(:,:), a_mass(:), a_zz(:), ion_x, ion_y, delta(2), dir, &
-      n_cor, n_sta, n_cap, ff, r0, r_min, a_v(:,:), a_a(:,:), vp
+      n_cor, n_sta, n_cap, ff, r0, r_min, a_v(:,:), a_a(:,:), vp, &
+      chi_min, chi_max, omega_min, omega_max, chi, omega
     integer :: natom, ion_qin, i, ind
 
     natom = size(a_mass)
@@ -201,8 +205,34 @@ module io
     vp = sqrt((2.0_dp * ion_ke * 1000.0_dp / e_fact) / (a_mass(1)))
 
     dir = ion_zf - ion_zi
-    a_v(1,3) = sign(vp, dir)
+
+    if (chi_min == chi_max) then
+      chi = chi_min
+    else
+      chi = uni(chi_min, chi_max - chi_min)
+    end if
+
+    if (omega_min == omega_max) then
+      omega = omega_min
+    else
+      omega = uni(omega_min, omega_max - omega_min)
+    end if
+
+    if (chi > 45.0_dp) then
+      chi = 45.0_dp
+    end if
+    if (omega > 45.0_dp) then
+      omega = 45.0_dp
+    end if
+
+    chi = chi*4.d0*datan(1.d0)/180.0_dp
+    !omega = omega*4.d0*datan(1.d0)/180.0_dp
+    omega = 0
+
     ! calculate velocity vector
+    a_v(1,1) = -1.0_dp*sign(vp, dir)*sin(chi)*cos(omega)
+    a_v(1,2) = -1.0_dp*sign(vp, dir)*sin(chi)*sin(omega)
+    a_v(1,3) = sign(vp, dir)*cos(chi)
 
     ! place ion in the center of the target
     do i = 2, natom
@@ -215,6 +245,8 @@ module io
     end do
 
     ! translate ion to correct coordinates
+    a_pos(1,1) = a_pos(1,1) - a_pos(1,3)*tan(chi)! - sqrt(a_pos(1,1)**2.0_dp + a_pos(1,3)**2.0_dp)*(1.0_dp - cos(omega))
+    !a_pos(1,2) = a_pos(1,2) + a_pos(1,1)*tan(omega)
 
     if (sigma_therm > 0.0) then
       do i = 2, natom

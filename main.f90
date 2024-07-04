@@ -52,7 +52,7 @@ program main
               n_cor, n_sta, n_cap, r_min, r0, dt, dt_max, t, ion_trj_len, ddr, &
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
               tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp, start_time, &
-              finish_time
+              finish_time, chi_min, chi_max, omega_min, omega_max, chi, omega
   integer, allocatable :: ion_qout_arr(:)
 
   ! v_type: potential type
@@ -90,7 +90,7 @@ program main
       call read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
         ion_qin, factor, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, &
         frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
-        is_xyz, v_typename, fname_target)
+        is_xyz, v_typename, chi_min, chi_max, omega_min, omega_max, fname_target)
     end if
     call MPI_BARRIER(MPI_COMM_WORLD, err)
   end do
@@ -301,7 +301,7 @@ program main
 
     call setup_sim(ion_zi, ion_zf, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_zz, ion_mass, ion_qin, ion_ke, a_pos, &
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
-                   factor, ff, r0, r_min, vp, sigma_therm)
+                   factor, ff, r0, r_min, vp, sigma_therm, chi_min, chi_max, omega_min, omega_max, chi, omega)
 
     if (is_xyz == 1) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
 
@@ -312,7 +312,7 @@ program main
     ion_trj_len = abs(a_pos(1,3) - ion_zi * len_fact) ! fucking factor
     dt_max = abs(dx_step/vp)
     tan_phi = 0.0_dp
-    tan_psi = 0.0_dP
+    tan_psi = 0.0_dp
     ion_qout = ion_qin
 
     if (verbose > 1) then
@@ -385,7 +385,8 @@ program main
 
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i4, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
-        (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi
+        (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi, &
+        chi/(4.d0*datan(1.d0))*180.0_dp, omega/(4.d0*datan(1.d0))*180.0_dp
     end if
 
     if (verbose > 1) close(logfile)
