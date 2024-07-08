@@ -110,7 +110,7 @@ program main
 
   ! choose if output files should be generated (energies, number of electrons):
   ! (huge amount of data! only use for small number of ions!)
-  export_files = .true.
+  export_files = .false.
 
   ! set potential type switch
   v_type = set_potential(v_typename)
