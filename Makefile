@@ -13,17 +13,21 @@ FFLAGS = -O3
 
 LIBS = fortran_stdlib
 
-# VSC
+# FILIP
 #LIB_DIR = /Users/filip/bin/fortran_stdlib/lib
 #MOD_DIR = /Users/filip/bin/fortran_stdlib/include/fortran_stdlib/GNU-13.2.0
 
-# FILIP
+# FILIP VSC
 #LIB_DIR = /home/fs70998/vukovicf/.local/lib64
 #MOD_DIR = /home/fs70998/vukovicf/.local/include/fortran_stdlib/GNU-10.2.0/
 
 # LUKAS
 LIB_DIR = /home/lukas/flib/lib
 MOD_DIR = /home/lukas/flib/include/fortran_stdlib/GNU-12.3.0/
+
+# LUKAS VSC
+#LIB_DIR = /home/fs70998/essletzbich/.local/lib64
+#MOD_DIR = /home/fs70998/essletzbich/.local/include/fortran_stdlib/GNU-10.2.0/
 
 # final build
 $(GOAL): $(OBJ)
