@@ -9,7 +9,8 @@ module io
   real(dp), parameter :: tol = 1.0e-15_dp, &
                          len_fact = 1.0_dp/0.529_dp, &
                          mass_fact = 1822.89_dp, & ! 1 amu = 1822.89 a.u.
-                         e_fact = 27.211_dp
+                         e_fact = 27.211_dp, &
+                         pi = 4.d0*datan(1.d0)
 
   private
   public :: init_random_seed, &
@@ -53,7 +54,7 @@ module io
   subroutine read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
     ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, frozen_par, &
     alpha_max, ion_zi, ion_zf, dx_step, acc, nhist, log_mode, is_xyz, v_typename, &
-    chi_min, chi_max, omega_min, omega_max, fname_target)
+    chi_min, chi_max, fname_target)
 
     character(len=:), allocatable, intent(in) :: fname_input
     character(len=:), allocatable :: prename, ion_elem, fname_target, v_typename
@@ -61,7 +62,7 @@ module io
     real(dp) :: ion_zz, ion_mass, ion_ke, ff, fwhm_qout, sigma_therm, &
       frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, &
       gam_p, gam_c, gam_s, gam_cut, &
-      chi_min, chi_max, omega_min, omega_max
+      chi_min, chi_max
     integer :: log_mode, nhist, io, stat, ion_qin, is_xyz
 
     open(newunit=io, file=fname_input, status='old', action='read')
@@ -75,7 +76,7 @@ module io
       read(io, *) ff
       read(io, *) fwhm_qout, sigma_therm, frozen_par, alpha_max
       read(io, *) ion_zi, ion_zf, dx_step, acc, nhist
-      read(io, *) chi_min, chi_max, omega_min, omega_max
+      read(io, *) chi_min, chi_max
       read(io, *) gam_p, gam_c, gam_s, gam_cut
       read(io, *) log_mode, is_xyz
       read(io, *, iostat=stat) tmpstr
@@ -170,11 +171,11 @@ module io
   subroutine setup_sim(ion_zi, ion_zf, ion_x, ion_y, ion_zz, ion_m, ion_qin, ion_ke, a_pos, &
                        a_mass, a_zz, a_v, a_a, cell, cell_scaled, n_cor, n_sta, n_cap, &
                        factor, ff, r0, r_min, vp, sigma_therm, &
-                       chi_min, chi_max, omega_min, omega_max, chi, omega)
+                       chi_min, chi_max, chi)
     real(dp), intent(in) :: ion_zi, ion_zf, ion_m, ion_zz, factor, ion_ke, cell(3), cell_scaled(3), sigma_therm
     real(dp) :: a_pos(:,:), a_mass(:), a_zz(:), ion_x, ion_y, delta(2), dir, &
       n_cor, n_sta, n_cap, ff, r0, r_min, a_v(:,:), a_a(:,:), vp, &
-      chi_min, chi_max, omega_min, omega_max, chi, omega
+      chi_min, chi_max, chi
     integer :: natom, ion_qin, i, ind
 
     natom = size(a_mass)
@@ -212,26 +213,15 @@ module io
       chi = uni(chi_min, chi_max - chi_min)
     end if
 
-    if (omega_min == omega_max) then
-      omega = omega_min
-    else
-      omega = uni(omega_min, omega_max - omega_min)
-    end if
-
     if (chi > 45.0_dp) then
       chi = 45.0_dp
     end if
-    if (omega > 45.0_dp) then
-      omega = 45.0_dp
-    end if
 
-    chi = chi*4.d0*datan(1.d0)/180.0_dp
-    !omega = omega*4.d0*datan(1.d0)/180.0_dp
-    omega = 0
+    ! from degree to rad
+    chi = chi*pi/180.0_dp
 
     ! calculate velocity vector
-    a_v(1,1) = -1.0_dp*sign(vp, dir)*sin(chi)*cos(omega)
-    a_v(1,2) = -1.0_dp*sign(vp, dir)*sin(chi)*sin(omega)
+    a_v(1,1) = -1.0_dp*sign(vp, dir)*sin(chi)
     a_v(1,3) = sign(vp, dir)*cos(chi)
 
     ! place ion in the center of the target
@@ -242,11 +232,20 @@ module io
           a_pos(i,ind) = a_pos(i,ind) - cell_scaled(ind) * dnint(delta(ind)/cell_scaled(ind))
         end if
       end do
+      ! rotate target atoms
+      !a_pos(i,1) = a_pos(i,1)*cos(omega) - a_pos(i,2)*sin(omega)
+      !a_pos(i,2) = a_pos(i,1)*sin(omega) + a_pos(i,2)*cos(omega)
     end do
 
     ! translate ion to correct coordinates
-    a_pos(1,1) = a_pos(1,1) - a_pos(1,3)*tan(chi)! - sqrt(a_pos(1,1)**2.0_dp + a_pos(1,3)**2.0_dp)*(1.0_dp - cos(omega))
-    !a_pos(1,2) = a_pos(1,2) + a_pos(1,1)*tan(omega)
+    a_pos(1,1) = a_pos(1,1) - a_pos(1,3)*tan(chi)
+
+    ! rotate ion
+    !a_pos(1,1) = a_pos(1,1)*cos(omega) - a_pos(1,2)*sin(omega)
+    !a_pos(1,2) = a_pos(1,1)*sin(omega) + a_pos(1,2)*cos(omega)
+
+    ! from rad to degree
+    chi = chi/pi*180.0_dp
 
     if (sigma_therm > 0.0) then
       do i = 2, natom

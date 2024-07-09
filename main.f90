@@ -40,7 +40,7 @@ program main
                            ion_ke_arr(:), ke_tar_arr(:), tan_phi_arr(:), &
                            r_min_arr(:), tan_psi_arr(:), &
                            ion_xy_arr(:,:), a_pos_og(:,:), xx(:), yy(:), &
-                           zz(:), ion_xx(:), ion_yy(:), a_pos_init(:,:)
+                           zz(:), ion_xx(:), ion_yy(:), a_pos_init(:,:), chi(:)
 
   ! ion_zz: atomic number
   ! cell, cell_scaled: simulation cell in Angstrom and a.u.
@@ -52,7 +52,7 @@ program main
               n_cor, n_sta, n_cap, r_min, r0, dt, dt_max, t, ion_trj_len, ddr, &
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
               tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp, start_time, &
-              finish_time, chi_min, chi_max, omega_min, omega_max, chi, omega
+              finish_time, chi_min, chi_max
   integer, allocatable :: ion_qout_arr(:)
 
   ! v_type: potential type
@@ -90,7 +90,7 @@ program main
       call read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
         ion_qin, factor, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, &
         frozen_par, alpha_max, ion_zi, ion_zf, dx_step, acc, nion, verbose, &
-        is_xyz, v_typename, chi_min, chi_max, omega_min, omega_max, fname_target)
+        is_xyz, v_typename, chi_min, chi_max, fname_target)
     end if
     call MPI_BARRIER(MPI_COMM_WORLD, err)
   end do
@@ -210,6 +210,7 @@ program main
   allocate(r_min_arr(nchunk))
   allocate(tan_psi_arr(nchunk))
   allocate(ion_xy_arr(nchunk,2))
+  allocate(chi(nchunk))
 
   ion_xy_arr = ion_xy(istart:istop,:)
   do icpu = 0, ncpu - 1
@@ -272,7 +273,7 @@ program main
   outfilename = prename // '_out_' // to_string(method) // '.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
-      write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi'
+      write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi chi'
     close(outputfile)
   end if
 
@@ -301,7 +302,8 @@ program main
 
     call setup_sim(ion_zi, ion_zf, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_zz, ion_mass, ion_qin, ion_ke, a_pos, &
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
-                   factor, ff, r0, r_min, vp, sigma_therm, chi_min, chi_max, omega_min, omega_max, chi, omega)
+                   factor, ff, r0, r_min, vp, sigma_therm, &
+                   chi_min, chi_max, chi(ii))
 
     if (is_xyz == 1) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
 
@@ -386,13 +388,15 @@ program main
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i4, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
         (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi, &
-        chi/(4.d0*datan(1.d0))*180.0_dp, omega/(4.d0*datan(1.d0))*180.0_dp
+        chi(ii)
     end if
 
     if (verbose > 1) close(logfile)
   end do
   call cpu_time(finish_time)
-  print *, "Time for calculating ion fly event: ", finish_time - start_time, " s"
+  if (verbose > 0) then
+    print *, "Time for calculating ion fly event: ", finish_time - start_time, " s"
+  end if
 
   do icpu = 0, ncpu - 1
     if (myid == icpu) then
@@ -400,7 +404,7 @@ program main
       do ii = 1, nchunk
         i_ion = istart + ii - 1
         write(outputfile, '(i6, 4(f15.5), i4, 3(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), &
-          ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii)
+          ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), chi(ii)
       end do
       close(outputfile)
     end if
