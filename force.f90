@@ -194,7 +194,7 @@ module force
     do j = 2, natom
       tmp = dist(x(1,:), x(j,:), cell)
       r = min(tmp, r)
-      ! if the gamma cutoff is +ve, calculate gamma and electron transfer between all targets within gam_cut
+      ! if the gamma cutoff is +ve, calculate gamma between all targets within gam_cut
       if (gam_cut > 0.0_dp) then
         if (tmp < gam_cut) then
           gam = gam + gamma_f(tmp, gam_p, gam_c, gam_s)
@@ -202,7 +202,7 @@ module force
       end if
     end do
 
-    ! else if gam_cut is -ve, then just calculate electron transfer between ion and nearest target atom
+    ! else if gam_cut is -ve, then just between ion and nearest target atom
     if (gam_cut <= 0.0) then
       gam = gamma_f(r, gam_p, gam_c, gam_s)
     end if

@@ -214,11 +214,13 @@ program main
 
   ion_xy_arr = ion_xy(istart:istop,:)
   do icpu = 0, ncpu - 1
-    if (myid == icpu) then
+    if ((verbose > 0) .and. (export_files .eqv. .true.) .and. (myid == icpu)) then
       print *, 'proc:', myid, ' has ion_xy:'
       do i = 1, nchunk
         print *, ion_xy_arr(i,:)
       end do
+    else if (myid == icpu) then
+      print *, 'proc:', myid, 'has', nchunk, 'ions'
     end if
     call MPI_BARRIER( MPI_COMM_WORLD, err)
   end do
@@ -403,7 +405,7 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 4(f15.5), i4, 3(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), &
+        write(outputfile, '(i6, 4(f15.5), i4, 4(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), &
           ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), chi(ii)
       end do
       close(outputfile)
