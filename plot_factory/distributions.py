@@ -47,9 +47,9 @@ fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, 
 #
 
 # settings
-folder = "/home/lukas/simulations/tdpot/project_thesis/angles/"
+folder = "/home/lukas/simulations/tdpot/project_thesis/angles/prod"
 target = "TLG"
-energy = "66"
+energy = "10"
 file_1 = f"{target}/Xe30_{energy}keV/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-0/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-0_out_2.txt"
 file_2 = f"{target}/Xe30_{energy}keV/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-10/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-10_out_2.txt"
 file_3 = f"{target}/Xe30_{energy}keV/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-20/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-20_out_2.txt"
@@ -71,30 +71,41 @@ for counter, file in enumerate(files):
 #
 
 # plot
-plt.hist(qout, histtype="step", bins=np.arange(0, 20, 1), color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "5 deg", "10 deg"], stacked=False, fill=False, linewidth=2)
+plt.hist(qout, histtype="step", bins=np.arange(0, 20, 1), color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
 plt.xlabel(r"Charge state of the ion")
 plt.ylabel(r"Number of ions")
 plt.legend()
-plt.savefig(os.path.join(folder, "hist_qout" + ".jpg"), dpi=600)
-plt.show()
+plt.savefig(os.path.join(folder, "hist_qout_" + target + "_" + energy + ".pdf"), dpi=600)
 
 plt.clf()
 
-plt.hist(phi, histtype="step", color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "5 deg", "10 deg"], stacked=False, fill=False, linewidth=2)
-plt.xlabel(r"Angular deflection phi of the ion (degree)")
+    # setup
+fig = plt.figure(figsize=(10.5, 7))
+ax = fig.add_subplot(111)
+plt.setp(ax.spines.values(), lw=3)
+fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.15 to 0.16, changed 0.17 to 0.19
+#
+
+plt.hist(phi, histtype="step", color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
+plt.xlabel(r"Angular deflection $\phi$ of the ion (degree)")
 plt.ylabel(r"Number of ions")
 plt.legend()
-plt.savefig(os.path.join(folder, "hist_phi" + ".jpg"), dpi=600)
-#plt.show()
+plt.savefig(os.path.join(folder, "hist_phi_" + target + "_" + energy + ".pdf"), dpi=600)
 
 plt.clf()
 
-plt.hist(psi, histtype="step", color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "5 deg", "10 deg"], stacked=False, fill=False, linewidth=2)
-plt.xlabel(r"Angular deflection psi of the ion (degree)")
+    # setup
+fig = plt.figure(figsize=(10.5, 7))
+ax = fig.add_subplot(111)
+plt.setp(ax.spines.values(), lw=3)
+fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.15 to 0.16, changed 0.17 to 0.19
+#
+
+plt.hist(psi, histtype="step", color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
+plt.xlabel(r"Angular deflection $\psi$ of the ion (degree)")
 plt.ylabel(r"Number of ions")
 plt.legend()
-plt.savefig(os.path.join(folder, "hist_psi" + ".jpg"), dpi=600)
-#plt.show()
+plt.savefig(os.path.join(folder, "hist_psi_" + target + "_" + energy + ".pdf"), dpi=600)
 
     # from plot template
 ax.xaxis.set_major_locator(MultipleLocator(10)) # changed from 5 to 10

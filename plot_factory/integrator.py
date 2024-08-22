@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib import ticker as mticker
 from matplotlib.ticker import MultipleLocator
-rcParams.update({'font.size': 26}) # changed from 36 to 26
+rcParams.update({'font.size': 20}) # changed from 36 to 20
 rcParams.update({"xtick.direction": "in", "ytick.direction": "in"})
 rcParams['font.sans-serif'] = "Helvetica"
 rcParams['font.family'] = "sans-serif"
@@ -47,8 +47,9 @@ fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, 
 #
 
 # settings
-folder = "/home/lukas/simulations/tdpot/project_thesis/springs/q30_100keV/tlg/"
-ion_nr = "3"
+folder = "/home/lukas/simulations/tdpot/project_thesis/performance/q8_10keV"
+ion_nr = "1"
+ekin_identifier = 2 # 2: ion + target, 5: target
 #
 
 # get data
@@ -56,13 +57,13 @@ energie_data_rk = np.loadtxt(os.path.join(folder, "log_energies_1_" + ion_nr + "
 energie_data_rk_T = energie_data_rk.T
 
 t_rk = energie_data_rk_T[0]
-e_kin_rk = energie_data_rk_T[5]
+e_kin_rk = energie_data_rk_T[ekin_identifier]
 
 energie_data_vv = np.loadtxt(os.path.join(folder, "log_energies_2_" + ion_nr + ".txt"))
 energie_data_vv_T = energie_data_vv.T
 
 t_vv = energie_data_vv_T[0]
-e_kin_vv = energie_data_vv_T[5]
+e_kin_vv = energie_data_vv_T[ekin_identifier]
 #
 
 # plot
