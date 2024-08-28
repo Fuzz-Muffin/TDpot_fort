@@ -68,7 +68,7 @@ with open (file, "r") as f:
 plt.plot(n, rk, color=t4iblue, label="Runge-Kutta method")
 plt.plot(n, vv, color=t4imaroon, label ="Verlet integration")
 
-plt.xlabel(r"Number of ions")
+plt.xlabel(r"Number of ion impact events")
 plt.ylabel(r"Duration of simulation (s)")
 
 plt.legend(fontsize=20, frameon=False)

@@ -103,10 +103,10 @@ program main
   ! choose method:
   ! 1: Runge-Kutta method
   ! 2: velocity Verlet algorithm
-  method = 2
+  method = 1
 
   ! choose if harmonic bonds in target should be applied:
-  springs = .true.
+  springs = .false.
 
   ! choose if output files should be generated (energies, number of electrons):
   ! (huge amount of data! only use for small number of ions!)

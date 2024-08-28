@@ -49,7 +49,7 @@ fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, 
 # settings
 folder = "/home/lukas/simulations/tdpot/project_thesis/angles/prod"
 target = "TLG"
-energy = "10"
+energy = "100"
 file_1 = f"{target}/Xe30_{energy}keV/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-0/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-0_out_2.txt"
 file_2 = f"{target}/Xe30_{energy}keV/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-10/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-10_out_2.txt"
 file_3 = f"{target}/Xe30_{energy}keV/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-20/{target}_Xe30_{energy}keV_g-0p0105-2p8-2-a-20_out_2.txt"
@@ -86,7 +86,7 @@ plt.setp(ax.spines.values(), lw=3)
 fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.15 to 0.16, changed 0.17 to 0.19
 #
 
-plt.hist(phi, histtype="step", color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
+plt.hist(phi, histtype="step", bins=np.arange(0, 90, 2), color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
 plt.xlabel(r"Angular deflection $\phi$ of the ion (degree)")
 plt.ylabel(r"Number of ions")
 plt.legend()
@@ -101,7 +101,7 @@ plt.setp(ax.spines.values(), lw=3)
 fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, wspace=0.2) # changed 0.15 to 0.16, changed 0.17 to 0.19
 #
 
-plt.hist(psi, histtype="step", color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
+plt.hist(psi, histtype="step", bins=np.arange(0, 45, 2), color=[t4iblue, t4imaroon, t4ipetrol] , label=["0 deg", "10 deg", "20 deg"], stacked=False, fill=False, linewidth=2)
 plt.xlabel(r"Angular deflection $\psi$ of the ion (degree)")
 plt.ylabel(r"Number of ions")
 plt.legend()

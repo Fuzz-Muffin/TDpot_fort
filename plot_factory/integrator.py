@@ -1,4 +1,4 @@
-# compares the conservation of kinetic energy in the target in respect of the integrator
+# compares the conservation of energy in respect of the integrator
 
 import os
 
@@ -49,7 +49,7 @@ fig.subplots_adjust(top=0.985, bottom=0.16, left=0.19, right=0.97, hspace=0.05, 
 # settings
 folder = "/home/lukas/simulations/tdpot/project_thesis/performance/q8_10keV"
 ion_nr = "1"
-ekin_identifier = 2 # 2: ion + target, 5: target
+energy_identifier = 3 # 2: ekin ion + ekin target, 3: ekin all + epot all, 5: ekin target
 #
 
 # get data
@@ -57,13 +57,13 @@ energie_data_rk = np.loadtxt(os.path.join(folder, "log_energies_1_" + ion_nr + "
 energie_data_rk_T = energie_data_rk.T
 
 t_rk = energie_data_rk_T[0]
-e_kin_rk = energie_data_rk_T[ekin_identifier]
+e_kin_rk = energie_data_rk_T[energy_identifier]
 
 energie_data_vv = np.loadtxt(os.path.join(folder, "log_energies_2_" + ion_nr + ".txt"))
 energie_data_vv_T = energie_data_vv.T
 
 t_vv = energie_data_vv_T[0]
-e_kin_vv = energie_data_vv_T[ekin_identifier]
+e_kin_vv = energie_data_vv_T[energy_identifier]
 #
 
 # plot
@@ -71,7 +71,8 @@ plt.plot(t_rk, e_kin_rk, color=t4iblue, label="Runge-Kutta method")
 plt.plot(t_vv, e_kin_vv, color=t4imaroon, label ="Verlet integration", linestyle="--")
 
 plt.xlabel(r"Distance to target in z (a.u.)")
-plt.ylabel(r"$E_{kin}$ (eV)")
+#plt.ylabel(r"$E_{kin}$ (eV)")
+plt.ylabel(r"$E_{kin}$ + $E_{pot}$ (eV)")
 
 plt.legend()
 plt.savefig(os.path.join(folder, "log_energies_" + ion_nr + ".jpg"), dpi=600)
