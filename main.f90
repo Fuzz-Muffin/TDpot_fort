@@ -98,7 +98,7 @@ program main
   end if 
   
   if (verbose == 2) then
-    nprint = 100
+    nprint = 1
   end if
   
   ! check if a file of initial ion coordinates exists  
@@ -277,7 +277,7 @@ program main
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
                    factor, ff, r0, r_min, vp, sigma_therm)
     
-    if (is_xyz==1) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
+    if (is_xyz==1) call print_xyz(a_pos, a_mass, a_zz, cell, 0.0_dp, xyzfilename, 'new')
 
     ! set some things up
     ddr = 0.01_dp
@@ -311,7 +311,7 @@ program main
       ion_trj_len = abs(a_pos(1,3) - ion_zi * len_fact)
       t = t + dt
 
-      if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
+      if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, t, xyzfilename, 'old')
       if (verbose >1) write(logfile,*)  count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len 
       
       count = count + 1

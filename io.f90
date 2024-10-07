@@ -217,8 +217,8 @@ module io
     end if 
   end subroutine
 
-  subroutine print_xyz(a_pos, a_mass, a_zz, cell, fname, status)
-    real(dp) :: a_pos(:,:), cell(:), a_zz(:), a_mass(:), zero
+  subroutine print_xyz(a_pos, a_mass, a_zz, cell, time, fname, status)
+    real(dp) :: a_pos(:,:), cell(:), a_zz(:), a_mass(:), zero, time
     integer :: io, i, ind, natom
     character(len=*):: fname, status
 
@@ -234,8 +234,9 @@ module io
       write(io,*) natom
       write(io,*) 'Lattice="',cell(1), zero, zero, &
                               zero , cell(2), zero, &
-                              zero, zero, cell(3), &
-                              '" Properties=pos:R:3:type:I:1:mass:R:1'
+                              zero, zero, cell(3), '"',&
+                              ' Time=', time, &
+                              ' Properties=pos:R:3:type:I:1:mass:R:1'
       do i=1, natom 
         write(io,*) a_pos(i,1)/len_fact, a_pos(i,2)/len_fact, a_pos(i,3)/len_fact, a_zz(i), a_mass(i)/mass_fact
       end do 
