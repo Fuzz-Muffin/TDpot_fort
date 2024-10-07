@@ -1,8 +1,7 @@
 module force
-  use stdlib_kinds, only: sp, dp
-  use stdlib_strings, only: to_string
+  use mod_types, only: dp
+  use io, only: str, normal
   use potentials, only: calc_vprime
-  use stdlib_stats_distribution_normal, only: norm_samp => rvs_normal
 
   implicit none
   real(dp), parameter :: tol = 1.0e-15_dp, &
@@ -150,20 +149,20 @@ module force
 
     if ((verbose > 0) .and. (export_files .eqv. .true.)) then
       if (count == 0) then
-        inquire(file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", exist=exists)
+        inquire(file="logs/energies_"//trim(str(i_ion))//".txt", exist=exists)
         if (exists) then
-          open(newunit=io, file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="replace", action="write")
+          open(newunit=io, file="logs/energies_"//trim(str(i_ion))//".txt", status="replace", action="write")
             write(io, *) x(1,3), sum(potential_energies), sum(kinetic_energies), &
             sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
           close(io)
         else
-          open(newunit=io, file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="new", action="write")
+          open(newunit=io, file="logs/energies_"//trim(str(i_ion))//".txt", status="new", action="write")
             write(io, *) x(1,3), sum(potential_energies), sum(kinetic_energies), &
             sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
           close(io)
         end if
       else
-        open(newunit=io, file="log_energies_"//to_string(method)//"_"//to_string(i_ion)//".txt", position="append", action="write")
+        open(newunit=io, file="logs/energies_"//trim(str(i_ion))//".txt", position="append", action="write")
           write(io, *) x(1,3), sum(potential_energies), sum(kinetic_energies), &
           sum(potential_energies) + sum(kinetic_energies), e_kin_ion, sum(e_kin_target)
         close(io)
@@ -264,7 +263,7 @@ module force
     integer :: ion_qout
 
     blah = a_zz(1) - n_cor - n_sta
-    rand = norm_samp(blah, fwhm_qout / 2.355_dp)
+    rand = normal(blah, fwhm_qout / 2.355_dp)
 
     ! if fwhm_qout == 0
     if (abs(fwhm_qout) < tol) then

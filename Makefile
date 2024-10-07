@@ -1,17 +1,22 @@
-OBJ = arnie.o\
+OBJ = mod_types.o\
+			arnie.o\
 			io.o\
 			potentials.o\
 			force.o\
 			main.o
 
 #FC = gfortran
-FC = mpifort
+#FC = mpifort
+FC = gfortran -I/usr/local/Cellar/open-mpi/5.0.3_1/include -Wl,-flat_namespace -Wl,-commons,use_dylibs -I/usr/local/Cellar/open-mpi/5.0.3_1/lib -L/usr/local/Cellar/open-mpi/5.0.3_1/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
 GOAL = TDpot
 
 FFLAGS = -O3
+
+LIB = -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
+
 #FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
 
-LIBS = fortran_stdlib
+#LIBS = fortran_stdlib
 
 # FILIP
 #LIB_DIR = /Users/filip/bin/fortran_stdlib/lib
@@ -22,8 +27,8 @@ LIBS = fortran_stdlib
 #MOD_DIR = /home/fs70998/vukovicf/.local/include/fortran_stdlib/GNU-10.2.0/
 
 # LUKAS
-LIB_DIR = /home/lukas/flib/lib
-MOD_DIR = /home/lukas/flib/include/fortran_stdlib/GNU-12.3.0/
+#LIB_DIR = /home/lukas/flib/lib
+#MOD_DIR = /home/lukas/flib/include/fortran_stdlib/GNU-12.3.0/
 
 # LUKAS VSC
 #LIB_DIR = /home/fs71431/essletzbich/.local/lib64
@@ -31,10 +36,11 @@ MOD_DIR = /home/lukas/flib/include/fortran_stdlib/GNU-12.3.0/
 
 # final build
 $(GOAL): $(OBJ)
-	$(FC) $(OBJ) $(FFLAGS) -J $(MOD_DIR) -L $(LIB_DIR) -l $(LIBS) -o $(GOAL)
+	$(FC) $(OBJ) $(FFLAGS) -o $(GOAL) $(LIB)
+#	$(FC) $(OBJ) $(FFLAGS) -J $(MOD_DIR) -L $(LIB_DIR) -l $(LIBS) -o $(GOAL)
 
 %.o: %.f90
-	$(FC) $(FFLAGS) -J $(MOD_DIR) -L $(LIB_DIR) -l $(LIBS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 force.o: potentials.o
 

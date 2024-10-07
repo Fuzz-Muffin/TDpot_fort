@@ -1,9 +1,5 @@
 module io
-  use stdlib_kinds, only: sp, dp
-  use stdlib_strings, only: to_string
-  use stdlib_random, only: random_seed
-  use stdlib_stats_distribution_uniform, only: uni => rvs_uniform
-  use stdlib_stats_distribution_normal, only: norm => rvs_normal
+  use mod_types, only: dp
 
   implicit none 
   real(dp), parameter :: tol = 1.0e-15_dp, &
@@ -13,7 +9,9 @@ module io
                          pi = 4.d0*datan(1.d0)
 
   private
-  public :: init_random_seed, &
+  public :: str,&
+            uni,&
+            normal,&
             read_indat, &
             print_indat, &
             set_potential, &
@@ -25,6 +23,31 @@ module io
             export_e_number
 
   contains
+  
+  !   "Convert an integer to string."
+  character(len=20) function str(k)
+    integer, intent(in) :: k
+    write (str, *) k
+    str = adjustl(str)
+    str = trim(str)
+  end function str
+
+  real(dp) function uni(a,b)
+    real(dp), intent(in) :: a, b
+    call random_number(uni)
+    uni = uni * (b-a) + a
+  end function uni 
+
+  real(dp) function normal(a,b)
+  real(dp), intent(in) :: a, b
+  real(dp) :: r1, r2, x
+
+  call random_number(r1)
+  call random_number(r2)
+  x = sqrt ( - 2.0D+00 * log ( r1 ) ) * cos ( 2.0D+00 * pi * r2 )
+  normal = a + b * x
+
+  end function normal
 
   subroutine count_lines(filename, nlines)
     character(len=*), intent(in) :: filename
@@ -40,16 +63,16 @@ module io
     close(iofile)
   end subroutine
 
-  subroutine init_random_seed(consist, myid)
-    integer :: seed_put, consist, seed_get, myid
-
-    if (consist == 1) then
-      seed_put = 666
-    else
-      call system_clock(count=seed_put)
-    end if
-    call random_seed(seed_put + myid, seed_get)
-  end subroutine
+!  subroutine init_random_seed(consist, myid)
+!    integer :: seed_put, consist, seed_get, myid
+!  
+!    if (consist == 1) then
+!      seed_put = 666
+!    else
+!      call system_clock(count=seed_put)
+!    end if
+!    call random_seed(seed_put + myid, seed_get)
+!  end subroutine
 
   subroutine read_indat(fname_input, prename, ion_elem, ion_zz, ion_mass, ion_ke, &
     ion_qin, ff, gam_p, gam_c, gam_s, gam_cut, fwhm_qout, sigma_therm, frozen_par, &
@@ -126,8 +149,8 @@ module io
   subroutine get_random_ion_xy(ion_x, ion_y, cell)
     real(dp) :: ion_x, ion_y, cell(3)
 
-    ion_x = uni(cell(1))
-    ion_y = uni(cell(2))
+    ion_x = uni(0.0_dp, cell(1))
+    ion_y = uni(0.0_dp, cell(2))
   end subroutine
 
   subroutine init_target(fname, natom) 
@@ -250,7 +273,7 @@ module io
     if (sigma_therm > 0.0) then
       do i = 2, natom
         do ind = 1, 3
-          a_pos(i,ind) = a_pos(i,ind) + norm(a_pos(i,ind), sigma_therm)
+          a_pos(i,ind) = a_pos(i,ind) + normal(a_pos(i,ind), sigma_therm)
         end do
       end do
     end if
@@ -287,18 +310,18 @@ module io
     logical :: exists
 
     if (count == 0) then
-      inquire(file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", exist=exists)
+      inquire(file="logs/e-number_"//trim(str(i_ion))//".txt", exist=exists)
       if (exists) then
-        open(newunit=io, file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="replace", action="write")
+        open(newunit=io, file="logs/e-number_"//trim(str(i_ion))//".txt", status="replace", action="write")
           write(io, *) a_pos_z, n_cor, n_sta, n_cap
         close(io)
       else
-        open(newunit=io, file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", status="new", action="write")
+        open(newunit=io, file="logs/e-number_"//trim(str(i_ion))//".txt", status="new", action="write")
           write(io, *) a_pos_z, n_cor, n_sta, n_cap
         close(io)
       end if
     else
-      open(newunit=io, file="log_e_number_"//to_string(method)//"_"//to_string(i_ion)//".txt", position="append", action="write")
+      open(newunit=io, file="logs/e-number_"//trim(str(i_ion))//".txt", position="append", action="write")
         write(io, *) a_pos_z, n_cor, n_sta, n_cap
       close(io)
     end if

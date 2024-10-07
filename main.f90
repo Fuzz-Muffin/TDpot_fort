@@ -4,11 +4,12 @@
 ! ff is a factor leftover from transferring from pascal to fortran (set to 1 in indat.in file)
 program main
   use, intrinsic :: iso_fortran_env
-  use stdlib_kinds, only: dp
-  use stdlib_strings, only: to_string
+  use mod_types, only: dp
+  !use stdlib_kinds, only: dp
+  !use stdlib_strings, only: to_string
   use arnie, only: print_arnie
   use io, only: &
-    init_random_seed, &
+    str, &
     read_indat, &
     set_potential, &
     print_indat, &
@@ -82,8 +83,8 @@ program main
   ! hard code for now
   fname_input = 'indat.in'
 
-  ! call with 1 for same seed
-  call init_random_seed(0, myid)
+  ! use a seed number if you need repeatability
+  call random_seed()
 
   do icpu = 0, ncpu
     if (myid == icpu) then
@@ -103,7 +104,7 @@ program main
   ! choose method:
   ! 1: Runge-Kutta method
   ! 2: velocity Verlet algorithm
-  method = 1
+  method = 2
 
   ! choose if harmonic bonds in target should be applied:
   springs = .false.
@@ -117,7 +118,7 @@ program main
   if ((verbose > 0) .and. (myid == 0)) then
     print *, 'Hallo, dis ist Arnold... your instructor.'
     print *, 'VERBOSE MODE ACTIVATED NYGARAHRARHAARHR!'
-    call system( mkdir // 'logs_' // to_string(method))
+    call system( mkdir // 'logs')
     !call print_arnie()
   end if
 
@@ -272,16 +273,17 @@ program main
   end if
 
   ! create an output file for the results
-  outfilename = prename // '_out_' // to_string(method) // '.txt'
+  !outfilename = prename // '_out_' // to_string(method) // '.txt'
+  outfilename = prename // '_out.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
       write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi chi'
     close(outputfile)
   end if
 
-  !===============================!
+  !===========================!
   ! ion fly event starts here !
-  !===============================!
+  !===========================!
   ii = 0
   call cpu_time(start_time)
   do i_ion = istart, istop
@@ -294,13 +296,13 @@ program main
     a_acel = 0.0_dp
 
     ! logging stuff
-    if (verbose > 0) print *, 'Shoot ion ', to_string(i_ion), ' of ', nion
+    if (verbose > 0) print *, 'Shoot ion ', trim(str(i_ion)), ' of ', trim(str(nion))
     if (verbose > 1) then
-      logfilename = 'logs_' // to_string(method) // '/' // prename // '_' // to_string(i_ion) // '.log'
+      logfilename = 'logs/' // prename // '_' // trim(str(i_ion)) // '.log'
       open(newunit=logfile, file=logfilename, action='write')
     end if
 
-    xyzfilename = 'logs_' // to_string(method) // '/ion_' // to_string(i_ion) // '.xyz'
+    xyzfilename = 'logs/ion_' // trim(str(i_ion)) // '.xyz'
 
     call setup_sim(ion_zi, ion_zf, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_zz, ion_mass, ion_qin, ion_ke, a_pos, &
                    a_mass, a_zz, a_vel, a_acel, cell, cell_scaled, n_cor, n_sta, n_cap, &
