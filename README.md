@@ -1,5 +1,10 @@
 # TDPot
 
+This a a fortran implimentation of the Time-Dependent Potential method that models ions transmission through solids, developed by Richard A. Wilhelm and Pedro L. Grande.
+Please see the following references:
+
+[Unralleing energy loss processes of low energy heavy ions in 2D materials](http://dx.doi.org/10.1038/s42005-019-0188-7)
+
 ## Requirements:
 
 * Fortran compiler (fortran 90 and above), openmpi (and the required wrapper to compile)
@@ -56,7 +61,8 @@ and is an 'xyz' file of sorts. looks like this:
 The first line is the number of particles. The second line is the size of the simulation cell (x, y and z).
 All other lines are representing properties of the particles. The first three columns are the x, y and z position. The fourth column is the particle type and the fifth column is the mass.
 
-!NOTE! this version of TDPot assumes the target to be periodic in x and y! Please be careful when providing target files. If you want to model ions incident on a non-periodic cell, some tricks will have to be used. Please email me if unsure.
+***!NOTE!*** 
+This version of TDPot assumes the target to be periodic in x and y! Please be careful when providing target files. If you want to model ions incident on a non-periodic sample, some tricks will have to be used. Please email the developers if unsure.
 
 To run the code, we need to use mpirun:
 
