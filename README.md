@@ -23,7 +23,7 @@ Some users might have a bug where the compiler cannot find the linker. The error
 ld: library 'System' not found
 ```
 
-If that is the case, please find the system linker, it should be in a directory something like this `/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib`, but it might be in a slightly different path depending on your system. Once you find it, add this line to the `Makefile`
+If that is the case, please find the system linker, it should be in a directory something like this `/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib`, but it might be in a slightly different path depending on your system. Once you find it, add this line somewhere near the top of the `Makefile`
 ```
 LIB = L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
 ```
