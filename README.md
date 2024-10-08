@@ -9,6 +9,26 @@ Please see the following references:
 
 * Fortran compiler (fortran 90 and above), openmpi (and the required wrapper to compile)
 
+### MacOs (intel):
+To get things working on an intel Mac, you will need to have xcode command line tools, gfortran and openmpi.
+
+Xcode:
+`sudo xcode-select --install`
+
+For openmpi and the gfortran compilers, it is probably easiest to install them via [homebrew](https://brew.sh). From there:
+```brew install openmpi gcc```
+
+Some users might have a bug where the compiler cannot find the linker. The error output will look something like this: 
+```
+ld: library 'System' not found
+```
+
+If that is the case, please find the system linker, it should be in a directory something like this `/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib`, but it might be in a slightly different path depending on your system. Once you find it, add this line to the `Makefile`
+```
+LIB = L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
+```
+or whatever the path was in your case.
+
 ## Setup
 
 Clone this repository. 
@@ -38,6 +58,7 @@ Xe                        ! ion
 1                         ! ff
 0.0 0.0 1 2               ! fwhm_qout, sigma_therm, frozen_par, alpha_max
 -30 30 0.01, 0.0001 1     ! ion_zi, ion_zf, dx_step, acc, nions
+0.0 0.0                   ! chi_min, chi_max
 0.0105 2.8 0.8 15.0       ! gam_a, gam_b, gam_c, gam_cut
 0 0                       ! logmode, print_xyz_files
 SLG_tdpot.xyz             ! target filename
