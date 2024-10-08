@@ -58,7 +58,7 @@ All other lines are representing properties of the particles. The first three co
 
 !NOTE! this version of TDPot assumes the target to be periodic in x and y! Please be careful when providing target files. If you want to model ions incident on a non-periodic cell, some tricks will have to be used. Please email me if unsure.
 
-To run the code, we need to used the mpirun:
+To run the code, we need to use mpirun:
 
 ```bash
 mpirun -n 1 /Path/to/exe_file/.../TDPot
