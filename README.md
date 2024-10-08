@@ -1,32 +1,21 @@
 # TDPot
 
-## Installation
+## Requirements:
 
-* Install Fortran (https://fortran-lang.org/learn/os_setup/install_gfortran/)
-
-* Install mpifort (https://cloud-gc.readthedocs.io/en/latest/chapter04_developer-guide/install-basic.html#mpi-library)
-
-* Install the Fortran Standard Library (https://github.com/fortran-lang/stdlib)
+* Fortran compiler (fortran 90 and above), openmpi (and the required wrapper to compile)
 
 ## Setup
 
-Clone this repository
-
-Use
+Clone this repository. 
+Modify the Makefile so that the your fortran (mpifort) compilers are used.
+If all is in order, go ahead and run
 
 ```bash
-make clean
+make clean && make
 
 ```
 
-and then
-
-```bash
-make
-
-```
-
-to compile the source code.
+to compile the source code. Should be quick and easy :)
 
 ## Usage
 
@@ -45,16 +34,16 @@ Xe                        ! ion
 0.0 0.0 1 2               ! fwhm_qout, sigma_therm, frozen_par, alpha_max
 -30 30 0.01, 0.0001 1     ! ion_zi, ion_zf, dx_step, acc, nions
 0.0105 2.8 0.8 15.0       ! gam_a, gam_b, gam_c, gam_cut
-1 0                       ! logmode, print_xyz_files
+0 0                       ! logmode, print_xyz_files
 SLG_tdpot.xyz             ! target filename
 ```
 
 You also need a ***target file*** in your work folder to which the ***input file*** is referencing in its last line.
-In this example, the ***target file*** has to be named
+In this example, the ***target file*** is named
 
 * SLG_tdpot.xyz
 
-and looks like this:
+and is an 'xyz' file of sorts. looks like this:
 
 ```
 60
@@ -64,21 +53,27 @@ and looks like this:
 ...
 ```
 
-The first line is the number of particles. The second line is the size of the simulation cell.
+The first line is the number of particles. The second line is the size of the simulation cell (x, y and z).
 All other lines are representing properties of the particles. The first three columns are the x, y and z position. The fourth column is the particle type and the fifth column is the mass.
 
-To start TDPot, use
+!NOTE! this version of TDPot assumes the target to be periodic in x and y! Please be careful when providing target files. If you want to model ions incident on a non-periodic cell, some tricks will have to be used. Please email me if unsure.
+
+To run the code, we need to used the mpirun:
 
 ```bash
-mpirun ~/.../TDPot
+mpirun -n 1 ~/.../TDPot
 
 ```
 
 in your work folder. The output file(s) will be written in that folder.
 
-To use several cores, in this case four, use:
+To use several cores in parallel, in this case four, use:
 
 ```bash
 mpirun -n 4 ~/.../TDPot
 
 ```
+
+Happy flying :)
+
+Filip V. and Lukas E. 
