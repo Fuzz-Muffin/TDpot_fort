@@ -61,16 +61,16 @@ All other lines are representing properties of the particles. The first three co
 To run the code, we need to used the mpirun:
 
 ```bash
-mpirun -n 1 ~/.../TDPot
+mpirun -n 1 /Path/to/exe_file/.../TDPot
 
 ```
 
-in your work folder. The output file(s) will be written in that folder.
+in your work folder, using the correct path to the TDPot executable that we just built. The output file(s) will be written in that folder.
 
 To use several cores in parallel, in this case four, use:
 
 ```bash
-mpirun -n 4 ~/.../TDPot
+mpirun -n 4 /Path/to/exe_file/.../TDPot
 
 ```
 
