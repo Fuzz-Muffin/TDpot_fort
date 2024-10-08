@@ -5,20 +5,23 @@ OBJ = mod_types.o\
 			force.o\
 			main.o
 
+## SET COMPILER
 #FC = gfortran
 #FC = mpifort
 FC = gfortran -I/usr/local/Cellar/open-mpi/5.0.3_1/include -Wl,-flat_namespace -Wl,-commons,use_dylibs -I/usr/local/Cellar/open-mpi/5.0.3_1/lib -L/usr/local/Cellar/open-mpi/5.0.3_1/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
+
+## EXE FILE NAME 
 GOAL = TDpot
 
+## COMPILING FLAGS
 FFLAGS = -O3
-
-LIB = -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
-
 #FFLAGS = -fbacktrace -Wall -Wextra -pedantic -fcheck=all -Og
 
-#LIBS = fortran_stdlib
-
+##========##
+## IGNORE ##
+##========##
 # FILIP
+#LIB = -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
 #LIB_DIR = /Users/filip/bin/fortran_stdlib/lib
 #MOD_DIR = /Users/filip/bin/fortran_stdlib/include/fortran_stdlib/GNU-13.2.0
 
@@ -33,6 +36,7 @@ LIB = -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
 # LUKAS VSC
 #LIB_DIR = /home/fs71431/essletzbich/.local/lib64
 #MOD_DIR = /home/fs71431/essletzbich/.local/include/fortran_stdlib/GNU-10.2.0/
+##========##
 
 # final build
 $(GOAL): $(OBJ)

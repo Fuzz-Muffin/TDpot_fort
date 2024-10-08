@@ -256,10 +256,11 @@ module force
     ff = tmp / (1.0_dp + tmp) + factor / (1.0_dp + tmp)
   end subroutine
 
-  subroutine calc_ion_props(fwhm_qout, a_v, a_zz, ion_iv, ion_qin, n_cor, n_sta, n_cap, tan_phi, tan_psi, ion_qout)
+  subroutine calc_ion_props(fwhm_qout, a_v, a_zz, ion_iv, ion_qin, n_cor, n_sta, n_cap, &
+      tan_phi, tan_psi, tan_alpha, tan_beta, ion_qout)
     real(dp), intent(in) :: a_v(:,:), a_zz(:), ion_iv(:)
     integer, intent(in) :: ion_qin
-    real(dp) :: fwhm_qout, n_cor, n_sta, n_cap, tan_phi, tan_psi, blah, rand
+    real(dp) :: fwhm_qout, n_cor, n_sta, n_cap, tan_phi, tan_psi, blah, rand, tan_alpha, tan_beta
     integer :: ion_qout
 
     blah = a_zz(1) - n_cor - n_sta
@@ -277,6 +278,9 @@ module force
     tan_phi = huge(1.0_dp)
     tan_psi = sqrt(a_v(1,1)**2 + a_v(1,2)**2) / a_v(1,3)
     if (abs(a_v(1,2)) > tol) tan_phi = a_v(1,1) / a_v(1,2)
+
+    tan_alpha = a_v(1,1)/a_v(1,3)
+    tan_beta  = a_v(1,2)/a_v(1,3)
   end subroutine
 
 end module

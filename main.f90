@@ -41,7 +41,8 @@ program main
                            ion_ke_arr(:), ke_tar_arr(:), tan_phi_arr(:), &
                            r_min_arr(:), tan_psi_arr(:), &
                            ion_xy_arr(:,:), a_pos_og(:,:), xx(:), yy(:), &
-                           zz(:), ion_xx(:), ion_yy(:), a_pos_init(:,:), chi(:)
+                           zz(:), ion_xx(:), ion_yy(:), a_pos_init(:,:), &
+                           chi(:), tan_alpha_arr(:), tan_beta_arr(:)
 
   ! ion_zz: atomic number
   ! cell, cell_scaled: simulation cell in Angstrom and a.u.
@@ -53,7 +54,7 @@ program main
               n_cor, n_sta, n_cap, r_min, r0, dt, dt_max, t, ion_trj_len, ddr, &
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
               tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp, start_time, &
-              finish_time, chi_min, chi_max
+              finish_time, chi_min, chi_max, tan_alpha, tan_beta
   integer, allocatable :: ion_qout_arr(:)
 
   ! v_type: potential type
@@ -210,8 +211,10 @@ program main
   allocate(ion_qout_arr(nchunk))
   allocate(r_min_arr(nchunk))
   allocate(tan_psi_arr(nchunk))
-  allocate(ion_xy_arr(nchunk,2))
   allocate(chi(nchunk))
+  allocate(tan_alpha_arr(nchunk))
+  allocate(tan_beta_arr(nchunk))
+  allocate(ion_xy_arr(nchunk,2))
 
   ion_xy_arr = ion_xy(istart:istop,:)
   do icpu = 0, ncpu - 1
@@ -277,7 +280,7 @@ program main
   outfilename = prename // '_out.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
-      write(outputfile, *) '#ion_id ion_x ion_y ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi chi'
+      write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi tan_alhpa tan_beta'
     close(outputfile)
   end if
 
@@ -368,7 +371,7 @@ program main
 
     ! calc ion properties at end of trj
     call calc_ion_props(fwhm_qout, a_vel, a_zz, ion_iv, ion_qin, n_cor, n_sta, n_cap, &
-      tan_phi, tan_psi, ion_qout)
+      tan_phi, tan_psi, tan_alpha, tan_beta, ion_qout)
 
     ! achar = ASCII Collating Sequence
     if (verbose > 0) then
@@ -388,6 +391,8 @@ program main
     ion_qout_arr(ii) = ion_qout
     r_min_arr(ii) = r_min
     tan_psi_arr(ii) = tan_psi
+    tan_alpha_arr(ii) = tan_alpha
+    tan_beta_arr(ii) = tan_beta
 
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i4, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
@@ -407,8 +412,8 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 4(f15.5), i4, 4(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), ion_ke_arr(ii), &
-          ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), chi(ii)
+        write(outputfile, '(i6, 4(f15.5), i4, 4(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
+          ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii)
       end do
       close(outputfile)
     end if
