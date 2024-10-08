@@ -1,3 +1,6 @@
 dev/
 *.o
+*.mod
 TDpot
+.vscode
+settings.json

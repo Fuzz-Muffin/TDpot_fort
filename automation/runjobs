@@ -1,0 +1,26 @@
+#!/bin/bash
+
+echo "starting runjobs"
+
+cd prod
+
+for i in */; do
+	cd $i
+	#echo $i
+	for j in */; do
+		cd $j
+		#echo $j
+		for k in */; do
+			cd $k
+			echo $k
+			#LUKAS
+			mpirun -n 4 /home/lukas/software/TDpot_fort/TDpot
+			#VSC
+			#sbatch job.sh
+			#sleep 5
+		cd ..
+		done
+	cd ..
+	done
+cd ..
+done
