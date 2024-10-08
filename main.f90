@@ -54,7 +54,7 @@ program main
               n_cor, n_sta, n_cap, r_min, r0, dt, dt_max, t, ion_trj_len, ddr, &
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
               tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp, start_time, &
-              finish_time, chi_min, chi_max, tan_alpha, tan_beta
+              finish_time, chi_min, chi_max, tan_alpha, tan_beta, time
   integer, allocatable :: ion_qout_arr(:)
 
   ! v_type: potential type
@@ -297,6 +297,7 @@ program main
     a_pos(:,3) = zz
     a_vel = 0.0_dp
     a_acel = 0.0_dp
+    time = 0.0_dp
 
     ! logging stuff
     if (verbose > 0) print *, 'Shoot ion ', trim(str(i_ion)), ' of ', trim(str(nion))
@@ -312,7 +313,7 @@ program main
                    factor, ff, r0, r_min, vp, sigma_therm, &
                    chi_min, chi_max, chi(ii))
 
-    if (is_xyz == 1) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'new')
+    if (is_xyz == 1) call print_xyZ(a_pos, a_mass, a_zz, cell, time, xyzfilename, 'new')
 
     ! set some things up
     ddr = 0.01_dp
@@ -348,8 +349,9 @@ program main
       ! current ion z-displacement w.r.t. initial position
       ion_trj_len = abs(a_pos(1,3) - ion_zi * len_fact)
       t = t + dt
+      time = time + dt
 
-      if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, xyzfilename, 'old')
+      if ((mod(count,nprint) == 0) .and. (is_xyz == 1)) call print_xyz(a_pos, a_mass, a_zz, cell, time, xyzfilename, 'old')
       if (verbose > 1) write(logfile, *) count, t, dt, a_pos(1,1), a_pos(1,2), a_pos(1,3), n_cor, n_sta, n_cap, ion_trj_len
 
       if ((verbose > 0) .and. (export_files .eqv. .true.)) then
