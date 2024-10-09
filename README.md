@@ -101,6 +101,13 @@ mpirun -n 4 /Path/to/exe_file/.../TDPot
 
 ```
 
+## Citation
+If you use this software (or method) please cite the following works:
+
+***DOI:*** [10.1038/s42005-019-0188-7](http://dx.doi.org/10.1038/s42005-019-0188-7)
+
 Happy flying :)
 
-Filip V. and Lukas E. 
+Filip V. and Lukas E.
+
+Institute of Applied Physics | TU Wien
