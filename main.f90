@@ -119,9 +119,11 @@ program main
   if ((verbose > 0) .and. (myid == 0)) then
     print *, 'Hallo, dis ist Arnold... your instructor.'
     print *, 'VERBOSE MODE ACTIVATED NYGARAHRARHAARHR!'
-    call system( mkdir // 'logs')
     !call print_arnie()
   end if
+  
+  ! if printing xyz coordinates or in verbose then make a logs directory
+  if ((verbose > 0) .or. (is_xyz > 0)) call system( mkdir // 'logs')
 
   if (verbose == 2) then
     ! calculation steps between logging (printing in terminal, writing in log files)
@@ -397,7 +399,7 @@ program main
     tan_beta_arr(ii) = tan_beta
 
     if (verbose > 0) then
-      write(6, '(i5, 5(f15.5), i4, 2(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
+      write(6, '(i5, 5(f15.5), i4, 3(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
         (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi, &
         chi(ii)
     end if
@@ -414,7 +416,7 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 4(f15.5), i4, 4(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
+        write(outputfile, '(i6, 5(f15.5), i4, 5(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
           ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii)
       end do
       close(outputfile)
