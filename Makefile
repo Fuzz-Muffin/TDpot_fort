@@ -7,8 +7,9 @@ OBJ = mod_types.o\
 
 ## SET COMPILER
 #FC = gfortran
-#FC = mpifort
-FC = gfortran -I/usr/local/Cellar/open-mpi/5.0.3_1/include -Wl,-flat_namespace -Wl,-commons,use_dylibs -I/usr/local/Cellar/open-mpi/5.0.3_1/lib -L/usr/local/Cellar/open-mpi/5.0.3_1/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
+FC = mpifort
+
+#FC = gfortran -I/usr/local/Cellar/open-mpi/5.0.3_1/include -Wl,-flat_namespace -Wl,-commons,use_dylibs -I/usr/local/Cellar/open-mpi/5.0.3_1/lib -L/usr/local/Cellar/open-mpi/5.0.3_1/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
 
 ## EXE FILE NAME 
 GOAL = TDpot
