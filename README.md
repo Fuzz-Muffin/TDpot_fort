@@ -7,7 +7,7 @@ Please see the following references:
 
 ## Requirements:
 
-* Fortran compiler (fortran 90 and above), openmpi (and the required wrapper to compile)
+* Fortran compiler (fortran 90 and above), openmpi (and the gfortran wrapper to make things properly)
 
 ### MacOs (intel):
 To get things working on an intel Mac, you will need to have xcode command line tools, gfortran and openmpi.
@@ -44,11 +44,7 @@ to compile the source code. Should be quick and easy :)
 
 ## Usage
 
-Switch to your work folder. You need an ***input file*** named
-
-* indat.dat
-
-to run TDPot. Here is an example of what it have to look like, including all needed parameters:
+Switch to your working directory. You need an ***input file*** named `indat.dat` to run TDPot. Here is an example of what it have to look like, including all needed parameters:
 
 ```
 SLG_Xe20_50keV            ! jobname
@@ -79,13 +75,13 @@ and is an 'xyz' file of sorts. looks like this:
 ...
 ```
 
-The first line is the number of particles. The second line is the size of the simulation cell (x, y and z).
-All other lines are representing properties of the particles. The first three columns are the x, y and z position. The fourth column is the particle type and the fifth column is the mass.
+The first line is the number of particles. The second line is the size of the simulation cell in x, y and z (in Ångstrom).
+All other lines are representing properties of the particles. The first three columns are the x, y and z position. The fourth column is Z and the fifth column is the mass.
 
 ***!NOTE!*** 
-This version of TDPot assumes the target to be periodic in x and y! Please be careful when providing target files. If you want to model ions incident on a non-periodic sample, some tricks will have to be used. Please email the developers if unsure.
+This version of TDPot assumes the target to be periodic in x and y! Please be careful when providing target files. If you want to model ions incident on a non-periodic sample you must account for the periodic boundary conditions. Please email the developers if unsure.
 
-To run the code, we need to use mpirun:
+To run the code with 1 core, use mpirun:
 
 ```bash
 mpirun -n 1 /Path/to/exe_file/.../TDPot
@@ -94,7 +90,7 @@ mpirun -n 1 /Path/to/exe_file/.../TDPot
 
 in your work folder, using the correct path to the TDPot executable that we just built. The output file(s) will be written in that folder.
 
-To use several cores in parallel, in this case four, use:
+For four cores in parallel:
 
 ```bash
 mpirun -n 4 /Path/to/exe_file/.../TDPot
