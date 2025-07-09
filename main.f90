@@ -42,7 +42,8 @@ program main
                            r_min_arr(:), tan_psi_arr(:), &
                            ion_xy_arr(:,:), a_pos_og(:,:), xx(:), yy(:), &
                            zz(:), ion_xx(:), ion_yy(:), a_pos_init(:,:), &
-                           chi(:), tan_alpha_arr(:), tan_beta_arr(:)
+                           chi(:), tan_alpha_arr(:), tan_beta_arr(:), &
+                           ion_vel_arr(:,:), ion_qout_float_arr(:)
 
   ! ion_zz: atomic number
   ! cell, cell_scaled: simulation cell in Angstrom and a.u.
@@ -217,6 +218,8 @@ program main
   allocate(tan_alpha_arr(nchunk))
   allocate(tan_beta_arr(nchunk))
   allocate(ion_xy_arr(nchunk,2))
+  allocate(ion_vel_arr(nchunk,3))
+  allocate(ion_qout_float_arr(nchunk))
 
   ion_xy_arr = ion_xy(istart:istop,:)
   do icpu = 0, ncpu - 1
@@ -282,7 +285,8 @@ program main
   outfilename = prename // '_out.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
-      write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min tan_phi tan_psi tan_alhpa tan_beta'
+      write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min'//&
+                           'tan_phi tan_psi tan_alhpa tan_beta ion_vx ion_vy ion_vz qout_float'
     close(outputfile)
   end if
 
@@ -416,8 +420,9 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 5(f15.5), i4, 5(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
-          ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii)
+        write(outputfile, '(i6, 5(f15.5), i4, 9(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
+          ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii), &
+          ion_vel_arr(ii,1), ion_vel_arr(ii,2), ion_vel_arr(ii,3), ion_qout_float_arr(ii)
       end do
       close(outputfile)
     end if
