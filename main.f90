@@ -62,7 +62,7 @@ program main
   integer :: i, j, k, n, nion, verbose, v_type, natom, logfile, &
              nprint, count, is_xyz, ion_qin, ion_qout, i_ion, iofile, &
              myid, ncpu, stat(MPI_STATUS_SIZE), err, nchunk, istart, istop, ii, icpu, &
-             outputfile, ntargetatom, rem, method
+             outputfile, ntargetatom, rem, method, ind
   character(len=:), allocatable :: fname_input, fname_target, prename, ion_elem, v_typename, &
                                    logfilename, xyzfilename, outfilename
   character(len=*),parameter :: mkdir = 'mkdir -p '
@@ -285,8 +285,8 @@ program main
   outfilename = prename // '_out.txt'
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
-      write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min'//&
-                           'tan_phi tan_psi tan_alhpa tan_beta ion_vx ion_vy ion_vz qout_float'
+      write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min '//&
+                           'tan_phi tan_psi tan_alhpa tan_beta ion_vx ion_vy ion_vz'
     close(outputfile)
   end if
 
@@ -319,7 +319,7 @@ program main
                    factor, ff, r0, r_min, vp, sigma_therm, &
                    chi_min, chi_max, chi(ii))
 
-    if (is_xyz == 1) call print_xyZ(a_pos, a_mass, a_zz, cell, time, xyzfilename, 'new')
+    if (is_xyz == 1) call print_xyz(a_pos, a_mass, a_zz, cell, time, xyzfilename, 'new')
 
     ! set some things up
     ddr = 0.01_dp
@@ -401,6 +401,9 @@ program main
     tan_psi_arr(ii) = tan_psi
     tan_alpha_arr(ii) = tan_alpha
     tan_beta_arr(ii) = tan_beta
+    do ind =1, 3
+      ion_vel_arr(ii,ind) = a_vel(1,ind)
+    end do 
 
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i4, 3(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
@@ -420,9 +423,9 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 5(f15.5), i4, 9(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
+        write(outputfile, '(i6, 5(f15.5), i4, 8(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
           ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii), &
-          ion_vel_arr(ii,1), ion_vel_arr(ii,2), ion_vel_arr(ii,3), ion_qout_float_arr(ii)
+          ion_vel_arr(ii,1), ion_vel_arr(ii,2), ion_vel_arr(ii,3)
       end do
       close(outputfile)
     end if
