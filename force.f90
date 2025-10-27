@@ -260,20 +260,20 @@ module force
       tan_phi, tan_psi, tan_alpha, tan_beta, ion_qout)
     real(dp), intent(in) :: a_v(:,:), a_zz(:), ion_iv(:)
     integer, intent(in) :: ion_qin
-    real(dp) :: fwhm_qout, n_cor, n_sta, n_cap, tan_phi, tan_psi, blah, rand, tan_alpha, tan_beta
-    integer :: ion_qout
+    real(dp) :: fwhm_qout, n_cor, n_sta, n_cap, tan_phi, tan_psi, blah, rand, tan_alpha, tan_beta, ion_qout
 
     blah = a_zz(1) - n_cor - n_sta
     rand = normal(blah, fwhm_qout / 2.355_dp)
 
     ! if fwhm_qout == 0
     if (abs(fwhm_qout) < tol) then
-      ion_qout = max(0, nint( blah ))
-    else if (max(0,nint(rand))< ion_qin) then
-      ion_qout = max(0, nint(rand))
+      ion_qout = max(0.0_dp, blah)
+    else if (max(0.0_dp, rand)< ion_qin) then
+      ion_qout = max(0.0_dp, rand)
     else
       ion_qout = ion_qin
     end if
+
 
     tan_phi = huge(1.0_dp)
     tan_psi = sqrt(a_v(1,1)**2 + a_v(1,2)**2) / a_v(1,3)

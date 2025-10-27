@@ -55,12 +55,12 @@ program main
               n_cor, n_sta, n_cap, r_min, r0, dt, dt_max, t, ion_trj_len, ddr, &
               ion_trj_max, lam_a, lam_mu, r_cut, gam_p, gam_c, gam_s, gam_cut, &
               tan_phi, tan_psi, ion_ispeed, vp, ke_tar, ke_ion, tmp, start_time, &
-              finish_time, chi_min, chi_max, tan_alpha, tan_beta, time
+              finish_time, chi_min, chi_max, tan_alpha, tan_beta, time, ion_qout
   integer, allocatable :: ion_qout_arr(:)
 
   ! v_type: potential type
   integer :: i, j, k, n, nion, verbose, v_type, natom, logfile, &
-             nprint, count, is_xyz, ion_qin, ion_qout, i_ion, iofile, &
+             nprint, count, is_xyz, ion_qin, i_ion, iofile, &
              myid, ncpu, stat(MPI_STATUS_SIZE), err, nchunk, istart, istop, ii, icpu, &
              outputfile, ntargetatom, rem, method, ind
   character(len=:), allocatable :: fname_input, fname_target, prename, ion_elem, v_typename, &
@@ -286,7 +286,7 @@ program main
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
       write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min '//&
-                           'tan_phi tan_psi tan_alhpa tan_beta ion_vx ion_vy ion_vz'
+                           'tan_phi tan_psi tan_alpha tan_beta ion_vx ion_vy ion_vz'
     close(outputfile)
   end if
 
@@ -329,7 +329,7 @@ program main
     dt_max = abs(dx_step/vp)
     tan_phi = 0.0_dp
     tan_psi = 0.0_dp
-    ion_qout = ion_qin
+    ion_qout = float(ion_qin)
 
     if (verbose > 1) then
       write(logfile, *) '#step time dt ion_x ion_y ion_z N_core N_stable N_cap ion_disp'
@@ -380,7 +380,8 @@ program main
     ! calc ion properties at end of trj
     call calc_ion_props(fwhm_qout, a_vel, a_zz, ion_iv, ion_qin, n_cor, n_sta, n_cap, &
       tan_phi, tan_psi, tan_alpha, tan_beta, ion_qout)
-
+    
+    
     ! achar = ASCII Collating Sequence
     if (verbose > 0) then
       print *, "ke_ion (a.u.)", achar(9), "ion_ke (a.u.)", achar(9), "ion_ke-ke_ion (a.u.)", achar(9), "ion_ke-ke_ion (eV)"
@@ -396,18 +397,19 @@ program main
     ke_tar_arr(ii) = ke_tar*e_fact ! [ion_ke_arr] = eV
 
     tan_phi_arr(ii) = tan_phi
-    ion_qout_arr(ii) = ion_qout
+    ion_qout_arr(ii) = nint(ion_qout)
     r_min_arr(ii) = r_min
     tan_psi_arr(ii) = tan_psi
     tan_alpha_arr(ii) = tan_alpha
     tan_beta_arr(ii) = tan_beta
+    ion_qout_float_arr(ii) = ion_qout
     do ind =1, 3
       ion_vel_arr(ii,ind) = a_vel(1,ind)
     end do 
 
     if (verbose > 0) then
       write(6, '(i5, 5(f15.5), i4, 3(f15.5))') i_ion, ion_xy_arr(ii,1)*len_fact, ion_xy_arr(ii,2)*len_fact, &
-        (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout, r_min, tan_psi, &
+        (ion_ke*1000.0/e_fact-ke_ion)*e_fact, ke_tar*e_fact, tan_phi, ion_qout_arr(ii), r_min, tan_psi, &
         chi(ii)
     end if
 
@@ -423,9 +425,9 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 5(e20.15), i6, 8(e20.15))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
+        write(outputfile, '(i12, 5(e25.16), i12, 9(e25.16))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
           ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii), &
-          ion_vel_arr(ii,1), ion_vel_arr(ii,2), ion_vel_arr(ii,3)
+          ion_vel_arr(ii,1), ion_vel_arr(ii,2), ion_vel_arr(ii,3), ion_qout_float_arr(ii)
       end do
       close(outputfile)
     end if
