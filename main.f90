@@ -423,7 +423,7 @@ program main
       open(newunit=outputfile, file=outfilename, position="append", status='old', action='write')
       do ii = 1, nchunk
         i_ion = istart + ii - 1
-        write(outputfile, '(i6, 5(f15.5), i4, 8(f15.5))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
+        write(outputfile, '(i6, 5(e20.15), i6, 8(e20.15))') i_ion, ion_xy_arr(ii,1), ion_xy_arr(ii,2), chi(ii), ion_ke_arr(ii), &
           ke_tar_arr(ii), ion_qout_arr(ii), r_min_arr(ii), tan_phi_arr(ii), tan_psi_arr(ii), tan_alpha_arr(ii), tan_beta_arr(ii), &
           ion_vel_arr(ii,1), ion_vel_arr(ii,2), ion_vel_arr(ii,3)
       end do
