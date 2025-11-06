@@ -286,7 +286,7 @@ program main
   if (myid == 0) then
     open(newunit=outputfile, file=outfilename, action='write')
       write(outputfile, *) '#ion_id ion_x ion_y chi ion_KE_i-ion_KE_f tar_KE qout r_min '//&
-                           'tan_phi tan_psi tan_alpha tan_beta ion_vx ion_vy ion_vz'
+                           'tan_phi tan_psi tan_alpha tan_beta ion_vx ion_vy ion_vz qout_float'
     close(outputfile)
   end if
 
